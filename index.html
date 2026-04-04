@@ -154,7 +154,8 @@
   <div id="content"></div>
 
   <div class="note">
-    Put these files in your repo root: <strong>v1.csv</strong>, <strong>v2.csv</strong>, <strong>v3.csv</strong>, <strong>tod.csv</strong>
+    Put these files in your repo root: <strong>v1.csv</strong>, <strong>v2.csv</strong>, <strong>v3.csv</strong>, <strong>tod.csv</strong><br>
+    These files are expected to be <strong>tab-separated</strong>.
   </div>
 
   <div class="modal" id="videoModal">
@@ -242,32 +243,8 @@
       return "";
     }
 
-    function parseCsvLine(line) {
-      const result = [];
-      let current = "";
-      let inQuotes = false;
-
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        const next = line[i + 1];
-
-        if (char === '"') {
-          if (inQuotes && next === '"') {
-            current += '"';
-            i++;
-          } else {
-            inQuotes = !inQuotes;
-          }
-        } else if (char === "," && !inQuotes) {
-          result.push(current);
-          current = "";
-        } else {
-          current += char;
-        }
-      }
-
-      result.push(current);
-      return result.map(v => v.trim());
+    function parseTsvLine(line) {
+      return line.split("\t").map(v => v.trim());
     }
 
     function parseCsv(text) {
@@ -278,10 +255,10 @@
 
       if (!lines.length) return [];
 
-      const headers = parseCsvLine(lines[0]);
+      const headers = parseTsvLine(lines[0]);
 
       return lines.slice(1).map(line => {
-        const values = parseCsvLine(line);
+        const values = parseTsvLine(line);
         const row = {};
 
         headers.forEach((header, index) => {
