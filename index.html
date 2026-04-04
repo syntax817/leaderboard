@@ -18,6 +18,9 @@
       --gold: #ffd700;
       --silver: #c0c0c0;
       --bronze: #cd7f32;
+      --badge: rgba(255,255,255,0.08);
+      --wr: #ffcc4d;
+      --record: #7ee787;
     }
 
     * { box-sizing: border-box; }
@@ -32,7 +35,7 @@
     }
 
     .container {
-      width: min(1300px, calc(100% - 32px));
+      width: min(1500px, calc(100% - 32px));
       margin: 0 auto;
       padding: 24px 0 40px;
     }
@@ -52,7 +55,7 @@
 
     .layout {
       display: grid;
-      grid-template-columns: 1.3fr 0.9fr;
+      grid-template-columns: minmax(760px, 1.25fr) minmax(560px, 1fr);
       gap: 20px;
       align-items: start;
     }
@@ -71,6 +74,55 @@
     .video-header {
       padding: 16px;
       border-bottom: 1px solid var(--border);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .header-title {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .header-meta {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      padding: 0 16px 14px;
+      flex-wrap: wrap;
+    }
+
+    .filter-box {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 220px;
+    }
+
+    .filter-box label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    select {
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      outline: none;
     }
 
     .tabs {
@@ -107,7 +159,7 @@
 
     table {
       width: 100%;
-      min-width: 760px;
+      min-width: 980px;
       border-collapse: collapse;
       table-layout: fixed;
     }
@@ -117,6 +169,7 @@
     col.col-player { width: 220px; }
     col.col-time { width: 130px; }
     col.col-date { width: 160px; }
+    col.col-badges { width: 180px; }
 
     th, td {
       padding: 12px;
@@ -190,8 +243,39 @@
       font-weight: 700;
     }
 
+    .badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      white-space: normal;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      background: var(--badge);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .badge.wr {
+      background: rgba(255, 204, 77, 0.12);
+      border-color: rgba(255, 204, 77, 0.28);
+      color: var(--wr);
+    }
+
+    .badge.record {
+      background: rgba(126, 231, 135, 0.12);
+      border-color: rgba(126, 231, 135, 0.28);
+      color: var(--record);
+    }
+
     .video-header-title {
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 700;
       margin-bottom: 6px;
     }
@@ -202,18 +286,45 @@
       line-height: 1.4;
     }
 
+    .video-frame-wrap {
+      padding: 16px;
+    }
+
     .video-frame {
       width: 100%;
       aspect-ratio: 16 / 9;
+      min-height: 420px;
       border: 0;
       background: black;
       display: block;
+      border-radius: 12px;
+    }
+
+    .video-extra {
+      padding: 0 16px 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .video-extra a {
+      color: var(--orange);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .video-extra a:hover {
+      text-decoration: underline;
     }
 
     .placeholder {
-      padding: 40px;
+      padding: 48px 24px;
       text-align: center;
       color: var(--muted);
+      min-height: 520px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .empty {
@@ -221,9 +332,17 @@
       color: var(--muted);
     }
 
-    @media (max-width: 1000px) {
+    @media (max-width: 1200px) {
       .layout {
         grid-template-columns: 1fr;
+      }
+
+      .video-frame {
+        min-height: 360px;
+      }
+
+      .placeholder {
+        min-height: 260px;
       }
     }
   </style>
@@ -235,8 +354,26 @@
 
     <div class="layout">
       <div class="panel">
-        <div class="panel-header" id="title"></div>
+        <div class="panel-header">
+          <div class="header-top">
+            <div>
+              <div class="header-title" id="title"></div>
+              <div class="header-meta" id="headerMeta"></div>
+            </div>
+          </div>
+        </div>
+
         <div class="tabs" id="tabs"></div>
+
+        <div class="controls">
+          <div class="filter-box">
+            <label for="characterFilter">Filter character</label>
+            <select id="characterFilter">
+              <option value="">All Characters</option>
+            </select>
+          </div>
+        </div>
+
         <div id="table"></div>
       </div>
 
@@ -246,23 +383,37 @@
           <div class="video-subtitle" id="videoSubtitle">Choose any leaderboard row to embed the video here.</div>
         </div>
         <div id="videoArea" class="placeholder">No video selected</div>
+        <div class="video-extra" id="videoExtra"></div>
       </div>
     </div>
   </div>
 
 <script>
+const SHEET_ID = '1ZhoEVdwr--j6TQAkEhMSL5qsL8tiUZes_zgxPRaoVAA';
 const DUNGEONS = {
-  "Void Invasion": "v1.csv",
-  "Void Taint": "v2.csv",
-  "Void Nightmare": "v3.csv",
-  "Tower of Disappearance": "tod.csv"
+  "Void Invasion": `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Void 1 3f')}`,
+  "Void Taint": `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Void 2 3f')}`,
+  "Void Nightmare": `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Void 3 4f')}`,
+  "Tower of Disappearance": `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('ToD Hard (AP only)')}`
 };
 
 let state = {
   active: Object.keys(DUNGEONS)[0],
   data: {},
-  selected: null
+  selected: null,
+  characterFilter: ''
 };
+
+const characterFilterEl = document.getElementById('characterFilter');
+const titleEl = document.getElementById('title');
+const headerMetaEl = document.getElementById('headerMeta');
+let lastRefreshText = '';
+const tableEl = document.getElementById('table');
+const tabsEl = document.getElementById('tabs');
+const videoTitleEl = document.getElementById('videoTitle');
+const videoSubtitleEl = document.getElementById('videoSubtitle');
+const videoAreaEl = document.getElementById('videoArea');
+const videoExtraEl = document.getElementById('videoExtra');
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -273,12 +424,49 @@ function escapeHtml(value) {
     .replace(/'/g, '&#039;');
 }
 
-function parseTSV(text) {
-  const lines = text.replace(/\r/g, '').split('\n').filter(line => line.trim() !== '');
+function parseDelimitedLine(line, delimiter) {
+  if (delimiter === '	') {
+    return line.split('	').map(value => value.trim());
+  }
+
+  const values = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const next = line[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === delimiter && !inQuotes) {
+      values.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+
+  values.push(current.trim());
+  return values;
+}
+
+function parseSheetData(text) {
+  const lines = text.replace(/
+/g, '').split('
+').filter(line => line.trim() !== '');
   if (!lines.length) return [];
-  const keys = lines[0].split('\t').map(x => x.trim());
+
+  const delimiter = lines[0].includes('	') ? '	' : ',';
+  const keys = parseDelimitedLine(lines[0], delimiter);
+
   return lines.slice(1).map(line => {
-    const values = line.split('\t');
+    const values = parseDelimitedLine(line, delimiter);
     const obj = {};
     keys.forEach((k, i) => obj[k] = (values[i] ?? '').trim());
     return obj;
@@ -308,8 +496,7 @@ function yt(url) {
 }
 
 function normalizeCharacterName(rawName) {
-  const clean = String(rawName || '').replace(/^\d+\)\s*/, '').trim();
-  return clean;
+  return String(rawName || '').replace(/^\d+\)\s*/, '').trim();
 }
 
 function iconFileFromCharacter(rawName) {
@@ -321,8 +508,64 @@ function iconFileFromCharacter(rawName) {
   return name ? `${name}.jpg` : '';
 }
 
+function positionValue(position) {
+  const n = parseInt(position, 10);
+  return Number.isFinite(n) ? n : 999999;
+}
+
+function enrichRows(rows) {
+  const characterBest = {};
+  let overallBest = Number.POSITIVE_INFINITY;
+
+  rows.forEach(row => {
+    const charName = normalizeCharacterName(row.Character);
+    const timeSeconds = seconds(row.Time);
+    if (timeSeconds < overallBest) overallBest = timeSeconds;
+    if (!(charName in characterBest) || timeSeconds < characterBest[charName]) {
+      characterBest[charName] = timeSeconds;
+    }
+  });
+
+  return rows.map(row => {
+    const cleanCharacter = normalizeCharacterName(row.Character);
+    const timeSeconds = seconds(row.Time);
+    return {
+      ...row,
+      cleanCharacter,
+      iconFile: iconFileFromCharacter(row.Character),
+      timeSeconds,
+      isWorldRecord: timeSeconds === overallBest,
+      isCharacterRecord: timeSeconds === characterBest[cleanCharacter]
+    };
+  }).sort((a, b) => {
+    const timeDiff = a.timeSeconds - b.timeSeconds;
+    if (timeDiff !== 0) return timeDiff;
+    const posDiff = positionValue(a.Position) - positionValue(b.Position);
+    if (posDiff !== 0) return posDiff;
+    return a.cleanCharacter.localeCompare(b.cleanCharacter);
+  });
+}
+
+function getDisplayedRows() {
+  const rows = state.data[state.active] || [];
+  if (!state.characterFilter) return rows;
+  return rows.filter(row => row.cleanCharacter === state.characterFilter);
+}
+
+function populateCharacterFilter() {
+  const allRows = state.data[state.active] || [];
+  const characters = [...new Set(allRows.map(row => row.cleanCharacter))].sort((a, b) => a.localeCompare(b));
+  characterFilterEl.innerHTML = '<option value="">All Characters</option>' +
+    characters.map(character => `<option value="${escapeHtml(character)}">${escapeHtml(character)}</option>`).join('');
+
+  if (state.characterFilter && !characters.includes(state.characterFilter)) {
+    state.characterFilter = '';
+  }
+  characterFilterEl.value = state.characterFilter;
+}
+
 function renderTabs() {
-  tabs.innerHTML = '';
+  tabsEl.innerHTML = '';
   Object.keys(DUNGEONS).forEach(d => {
     const el = document.createElement('div');
     el.className = 'tab ' + (state.active === d ? 'active' : '');
@@ -330,24 +573,30 @@ function renderTabs() {
     el.onclick = () => {
       state.active = d;
       state.selected = null;
+      state.characterFilter = '';
+      populateCharacterFilter();
       render();
       renderVideo();
     };
-    tabs.appendChild(el);
+    tabsEl.appendChild(el);
   });
 }
 
 function render() {
-  title.textContent = state.active;
-  const rows = state.data[state.active] || [];
+  titleEl.textContent = state.active;
+  populateCharacterFilter();
+
+  const allRows = state.data[state.active] || [];
+  const rows = getDisplayedRows();
+  headerMetaEl.textContent = `${rows.length} shown • ${allRows.length} total${lastRefreshText ? ` • ${lastRefreshText}` : ''}`;
 
   if (!rows.length) {
-    table.innerHTML = `<div class="empty">No runs found for ${escapeHtml(state.active)}.</div>`;
+    tableEl.innerHTML = `<div class="empty">No runs found for ${escapeHtml(state.active)}.</div>`;
     renderTabs();
     return;
   }
 
-  table.innerHTML = `
+  tableEl.innerHTML = `
     <div class="table-wrap">
       <table>
         <colgroup>
@@ -356,6 +605,7 @@ function render() {
           <col class="col-player">
           <col class="col-time">
           <col class="col-date">
+          <col class="col-badges">
         </colgroup>
         <thead>
           <tr>
@@ -364,32 +614,35 @@ function render() {
             <th>Player</th>
             <th>Time</th>
             <th>Date</th>
+            <th>Badges</th>
           </tr>
         </thead>
         <tbody>
           ${rows.map((r, index) => {
-            const activeClass = state.selected && state.selected.dungeon === state.active && state.selected.index === index ? 'active-row' : '';
+            const activeClass = state.selected && state.selected.dungeon === state.active && state.selected.rowKey === makeRowKey(r) ? 'active-row' : '';
             const rankClass = r.Position === '1' ? 'rank rank-1' : r.Position === '2' ? 'rank rank-2' : r.Position === '3' ? 'rank rank-3' : 'rank';
-            const normalizedCharacter = normalizeCharacterName(r.Character);
-            const iconFile = iconFileFromCharacter(r.Character);
+            const badges = [];
+            if (r.isWorldRecord) badges.push('<span class="badge wr">WR</span>');
+            if (r.isCharacterRecord) badges.push('<span class="badge record">Character Record</span>');
 
             return `
-              <tr class="${activeClass}" data-index="${index}">
+              <tr class="${activeClass}" data-row-key="${escapeHtml(makeRowKey(r))}">
                 <td class="${rankClass}">${escapeHtml(r.Position)}</td>
                 <td>
                   <div class="character-cell">
                     <img
                       class="character-icon"
-                      src="${escapeHtml(iconFile)}"
-                      alt="${escapeHtml(normalizedCharacter)}"
+                      src="${escapeHtml(r.iconFile)}"
+                      alt="${escapeHtml(r.cleanCharacter)}"
                       onerror="this.style.display='none'"
                     >
-                    <span class="character-name">${escapeHtml(normalizedCharacter)}</span>
+                    <span class="character-name">${escapeHtml(r.cleanCharacter)}</span>
                   </div>
                 </td>
                 <td><span class="player-name">${escapeHtml(r.Player)}</span></td>
                 <td>${escapeHtml(r.Time)}</td>
                 <td>${escapeHtml(r['Post date (dd/mm/yyyy)'] || '')}</td>
+                <td><div class="badges">${badges.join('')}</div></td>
               </tr>
             `;
           }).join('')}
@@ -398,11 +651,11 @@ function render() {
     </div>
   `;
 
-  table.querySelectorAll('tbody tr').forEach(tr => {
+  tableEl.querySelectorAll('tbody tr').forEach(tr => {
     tr.addEventListener('click', () => {
-      const index = Number(tr.getAttribute('data-index'));
-      const row = rows[index];
-      state.selected = { dungeon: state.active, index, row };
+      const rowKey = tr.getAttribute('data-row-key');
+      const row = rows.find(item => makeRowKey(item) === rowKey);
+      state.selected = { dungeon: state.active, rowKey, row };
       render();
       renderVideo();
     });
@@ -411,49 +664,81 @@ function render() {
   renderTabs();
 }
 
+function makeRowKey(row) {
+  return [row.Position, row.cleanCharacter, row.Player, row.Time, row['Post date (dd/mm/yyyy)'] || ''].join('|');
+}
+
 function renderVideo() {
   if (!state.selected || !state.selected.row) {
-    videoTitle.textContent = 'Select a run';
-    videoSubtitle.textContent = 'Choose any leaderboard row to embed the video here.';
-    videoArea.className = 'placeholder';
-    videoArea.innerHTML = 'No video selected';
+    videoTitleEl.textContent = 'Select a run';
+    videoSubtitleEl.textContent = 'Choose any leaderboard row to embed the video here.';
+    videoAreaEl.className = 'placeholder';
+    videoAreaEl.innerHTML = 'No video selected';
+    videoExtraEl.innerHTML = '';
     return;
   }
 
   const row = state.selected.row;
   const embed = yt(row['Speedrun video:']);
-  const character = normalizeCharacterName(row.Character);
 
-  videoTitle.textContent = `${row.Player} • ${character}`;
-  videoSubtitle.textContent = `${state.selected.dungeon} • ${row.Time} • ${row['Post date (dd/mm/yyyy)'] || ''}`;
+  videoTitleEl.textContent = `${row.Player} • ${row.cleanCharacter}`;
+  videoSubtitleEl.textContent = `${state.selected.dungeon} • ${row.Time} • ${row['Post date (dd/mm/yyyy)'] || ''}`;
+
+  const badges = [];
+  if (row.isWorldRecord) badges.push('WR');
+  if (row.isCharacterRecord) badges.push('Character Record');
 
   if (!embed) {
-    videoArea.className = 'placeholder';
-    videoArea.innerHTML = 'Invalid or missing YouTube link';
+    videoAreaEl.className = 'placeholder';
+    videoAreaEl.innerHTML = 'Invalid or missing YouTube link';
+    videoExtraEl.innerHTML = '';
     return;
   }
 
-  videoArea.className = '';
-  videoArea.innerHTML = `<iframe class="video-frame" src="${escapeHtml(embed)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+  videoAreaEl.className = '';
+  videoAreaEl.innerHTML = `<div class="video-frame-wrap"><iframe class="video-frame" src="${escapeHtml(embed)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`;
+  videoExtraEl.innerHTML = `
+    Player: <strong>${escapeHtml(row.Player)}</strong><br>
+    Character: <strong>${escapeHtml(row.cleanCharacter)}</strong><br>
+    Position: <strong>${escapeHtml(row.Position)}</strong><br>
+    ${badges.length ? `Badges: <strong>${escapeHtml(badges.join(' • '))}</strong><br>` : ''}
+    <a href="${escapeHtml(row['Speedrun video:'])}" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
+  `;
 }
+
+characterFilterEl.addEventListener('change', () => {
+  state.characterFilter = characterFilterEl.value;
+  if (state.selected && state.selected.dungeon === state.active) {
+    const visibleRows = getDisplayedRows();
+    const stillVisible = visibleRows.some(row => makeRowKey(row) === state.selected.rowKey);
+    if (!stillVisible) state.selected = null;
+  }
+  render();
+  renderVideo();
+});
 
 async function load() {
   for (const d in DUNGEONS) {
     try {
       const r = await fetch(DUNGEONS[d], { cache: 'no-store' });
       const t = await r.text();
-      state.data[d] = parseTSV(t)
-        .filter(x => x.Player && x.Time)
-        .sort((a, b) => seconds(a.Time) - seconds(b.Time));
+      state.data[d] = enrichRows(
+        parseSheetData(t).filter(x => x.Player && x.Time)
+      );
     } catch (e) {
       state.data[d] = [];
     }
   }
+
+  lastRefreshText = `updated ${new Date().toLocaleString()}`;
+  renderTabs();
+  populateCharacterFilter();
   render();
   renderVideo();
 }
 
 load();
+setInterval(load, 60 * 60 * 1000);
 </script>
 </body>
 </html>
