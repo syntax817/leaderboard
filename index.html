@@ -400,36 +400,36 @@ let state = {
   active: Object.keys(DUNGEONS)[0],
   data: {},
   selected: null,
-  characterFilter: ''
+  characterFilter: ""
 };
 
-const characterFilterEl = document.getElementById('characterFilter');
-const titleEl = document.getElementById('title');
-const headerMetaEl = document.getElementById('headerMeta');
-let lastRefreshText = '';
-const tableEl = document.getElementById('table');
-const tabsEl = document.getElementById('tabs');
-const videoTitleEl = document.getElementById('videoTitle');
-const videoSubtitleEl = document.getElementById('videoSubtitle');
-const videoAreaEl = document.getElementById('videoArea');
-const videoExtraEl = document.getElementById('videoExtra');
+const characterFilterEl = document.getElementById("characterFilter");
+const titleEl = document.getElementById("title");
+const headerMetaEl = document.getElementById("headerMeta");
+const tableEl = document.getElementById("table");
+const tabsEl = document.getElementById("tabs");
+const videoTitleEl = document.getElementById("videoTitle");
+const videoSubtitleEl = document.getElementById("videoSubtitle");
+const videoAreaEl = document.getElementById("videoArea");
+const videoExtraEl = document.getElementById("videoExtra");
+let lastRefreshText = "";
 
 function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function parseDelimitedLine(line, delimiter) {
-  if (delimiter === '	') {
-    return line.split('	').map(value => value.trim());
+  if (delimiter === "\t") {
+    return line.split("\t").map(value => value.trim());
   }
 
   const values = [];
-  let current = '';
+  let current = "";
   let inQuotes = false;
 
   for (let i = 0; i < line.length; i++) {
@@ -445,7 +445,7 @@ function parseDelimitedLine(line, delimiter) {
       }
     } else if (char === delimiter && !inQuotes) {
       values.push(current.trim());
-      current = '';
+      current = "";
     } else {
       current += char;
     }
@@ -456,24 +456,28 @@ function parseDelimitedLine(line, delimiter) {
 }
 
 function parseSheetData(text) {
-  const lines = text.replace(/
-/g, '').split('
-').filter(line => line.trim() !== '');
+  const lines = text
+    .replace(/\r/g, "")
+    .split("\n")
+    .filter(line => line.trim() !== "");
+
   if (!lines.length) return [];
 
-  const delimiter = lines[0].includes('	') ? '	' : ',';
+  const delimiter = lines[0].includes("\t") ? "\t" : ",";
   const keys = parseDelimitedLine(lines[0], delimiter);
 
   return lines.slice(1).map(line => {
     const values = parseDelimitedLine(line, delimiter);
     const obj = {};
-    keys.forEach((k, i) => obj[k] = (values[i] ?? '').trim());
+    keys.forEach((k, i) => {
+      obj[k] = (values[i] ?? "").trim();
+    });
     return obj;
   });
 }
 
 function seconds(t) {
-  const parts = String(t || '').split(':').map(Number);
+  const parts = String(t || "").split(":").map(Number);
   if (parts.length === 2 && !parts.some(Number.isNaN)) return parts[0] * 60 + parts[1];
   if (parts.length === 3 && !parts.some(Number.isNaN)) return parts[0] * 3600 + parts[1] * 60 + parts[2];
   return Number.POSITIVE_INFINITY;
@@ -482,29 +486,29 @@ function seconds(t) {
 function yt(url) {
   try {
     const parsed = new URL(url);
-    if (parsed.hostname.includes('youtu.be')) {
-      const id = parsed.pathname.replace('/', '').trim();
-      return id ? `https://www.youtube.com/embed/${id}` : '';
+    if (parsed.hostname.includes("youtu.be")) {
+      const id = parsed.pathname.replace("/", "").trim();
+      return id ? `https://www.youtube.com/embed/${id}` : "";
     }
-    if (parsed.hostname.includes('youtube.com')) {
-      const id = parsed.searchParams.get('v');
-      return id ? `https://www.youtube.com/embed/${id}` : '';
+    if (parsed.hostname.includes("youtube.com")) {
+      const id = parsed.searchParams.get("v");
+      return id ? `https://www.youtube.com/embed/${id}` : "";
     }
   } catch (e) {}
-  return '';
+  return "";
 }
 
 function normalizeCharacterName(rawName) {
-  return String(rawName || '').replace(/^\d+\)\s*/, '').trim();
+  return String(rawName || "").replace(/^\d+\)\s*/, "").trim();
 }
 
 function iconFileFromCharacter(rawName) {
   const name = normalizeCharacterName(rawName)
     .toLowerCase()
-    .replace(/\//g, '-')
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '');
-  return name ? `${name}.jpg` : '';
+    .replace(/\//g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+  return name ? `${name}.jpg` : "";
 }
 
 function positionValue(position) {
@@ -525,24 +529,36 @@ function enrichRows(rows) {
     }
   });
 
-  return rows.map(row => {
-    const cleanCharacter = normalizeCharacterName(row.Character);
-    const timeSeconds = seconds(row.Time);
-    return {
-      ...row,
-      cleanCharacter,
-      iconFile: iconFileFromCharacter(row.Character),
-      timeSeconds,
-      isWorldRecord: timeSeconds === overallBest,
-      isCharacterRecord: timeSeconds === characterBest[cleanCharacter]
-    };
-  }).sort((a, b) => {
-    const timeDiff = a.timeSeconds - b.timeSeconds;
-    if (timeDiff !== 0) return timeDiff;
-    const posDiff = positionValue(a.Position) - positionValue(b.Position);
-    if (posDiff !== 0) return posDiff;
-    return a.cleanCharacter.localeCompare(b.cleanCharacter);
-  });
+  return rows
+    .map(row => {
+      const cleanCharacter = normalizeCharacterName(row.Character);
+      const timeSeconds = seconds(row.Time);
+      return {
+        ...row,
+        cleanCharacter,
+        iconFile: iconFileFromCharacter(row.Character),
+        timeSeconds,
+        isWorldRecord: timeSeconds === overallBest,
+        isCharacterRecord: timeSeconds === characterBest[cleanCharacter]
+      };
+    })
+    .sort((a, b) => {
+      const timeDiff = a.timeSeconds - b.timeSeconds;
+      if (timeDiff !== 0) return timeDiff;
+      const posDiff = positionValue(a.Position) - positionValue(b.Position);
+      if (posDiff !== 0) return posDiff;
+      return a.cleanCharacter.localeCompare(b.cleanCharacter);
+    });
+}
+
+function makeRowKey(row) {
+  return [
+    row.Position,
+    row.cleanCharacter,
+    row.Player,
+    row.Time,
+    row["Post date (dd/mm/yyyy)"] || ""
+  ].join("|");
 }
 
 function getDisplayedRows() {
@@ -553,27 +569,31 @@ function getDisplayedRows() {
 
 function populateCharacterFilter() {
   const allRows = state.data[state.active] || [];
-  const characters = [...new Set(allRows.map(row => row.cleanCharacter))].sort((a, b) => a.localeCompare(b));
-  characterFilterEl.innerHTML = '<option value="">All Characters</option>' +
-    characters.map(character => `<option value="${escapeHtml(character)}">${escapeHtml(character)}</option>`).join('');
+  const characters = [...new Set(allRows.map(row => row.cleanCharacter))]
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b));
+
+  characterFilterEl.innerHTML =
+    '<option value="">All Characters</option>' +
+    characters.map(character => `<option value="${escapeHtml(character)}">${escapeHtml(character)}</option>`).join("");
 
   if (state.characterFilter && !characters.includes(state.characterFilter)) {
-    state.characterFilter = '';
+    state.characterFilter = "";
   }
+
   characterFilterEl.value = state.characterFilter;
 }
 
 function renderTabs() {
-  tabsEl.innerHTML = '';
+  tabsEl.innerHTML = "";
   Object.keys(DUNGEONS).forEach(d => {
-    const el = document.createElement('div');
-    el.className = 'tab ' + (state.active === d ? 'active' : '');
+    const el = document.createElement("div");
+    el.className = "tab " + (state.active === d ? "active" : "");
     el.textContent = d;
     el.onclick = () => {
       state.active = d;
       state.selected = null;
-      state.characterFilter = '';
-      populateCharacterFilter();
+      state.characterFilter = "";
       render();
       renderVideo();
     };
@@ -587,7 +607,8 @@ function render() {
 
   const allRows = state.data[state.active] || [];
   const rows = getDisplayedRows();
-  headerMetaEl.textContent = `${rows.length} shown • ${allRows.length} total${lastRefreshText ? ` • ${lastRefreshText}` : ''}`;
+
+  headerMetaEl.textContent = `${rows.length} shown • ${allRows.length} total${lastRefreshText ? ` • ${lastRefreshText}` : ""}`;
 
   if (!rows.length) {
     tableEl.innerHTML = `<div class="empty">No runs found for ${escapeHtml(state.active)}.</div>`;
@@ -617,9 +638,23 @@ function render() {
           </tr>
         </thead>
         <tbody>
-          ${rows.map((r, index) => {
-            const activeClass = state.selected && state.selected.dungeon === state.active && state.selected.rowKey === makeRowKey(r) ? 'active-row' : '';
-            const rankClass = r.Position === '1' ? 'rank rank-1' : r.Position === '2' ? 'rank rank-2' : r.Position === '3' ? 'rank rank-3' : 'rank';
+          ${rows.map(r => {
+            const activeClass =
+              state.selected &&
+              state.selected.dungeon === state.active &&
+              state.selected.rowKey === makeRowKey(r)
+                ? "active-row"
+                : "";
+
+            const rankClass =
+              r.Position === "1"
+                ? "rank rank-1"
+                : r.Position === "2"
+                ? "rank rank-2"
+                : r.Position === "3"
+                ? "rank rank-3"
+                : "rank";
+
             const badges = [];
             if (r.isWorldRecord) badges.push('<span class="badge wr">WR</span>');
             if (r.isCharacterRecord) badges.push('<span class="badge record">Character Record</span>');
@@ -640,21 +675,21 @@ function render() {
                 </td>
                 <td><span class="player-name">${escapeHtml(r.Player)}</span></td>
                 <td>${escapeHtml(r.Time)}</td>
-                <td>${escapeHtml(r['Post date (dd/mm/yyyy)'] || '')}</td>
-                <td><div class="badges">${badges.join('')}</div></td>
+                <td>${escapeHtml(r["Post date (dd/mm/yyyy)"] || "")}</td>
+                <td><div class="badges">${badges.join("")}</div></td>
               </tr>
             `;
-          }).join('')}
+          }).join("")}
         </tbody>
       </table>
     </div>
   `;
 
-  tableEl.querySelectorAll('tbody tr').forEach(tr => {
-    tr.addEventListener('click', () => {
-      const rowKey = tr.getAttribute('data-row-key');
+  tableEl.querySelectorAll("tbody tr").forEach(tr => {
+    tr.addEventListener("click", () => {
+      const rowKey = tr.getAttribute("data-row-key");
       const row = rows.find(item => makeRowKey(item) === rowKey);
-      state.selected = { dungeon: state.active, rowKey, row };
+      state.selected = row ? { dungeon: state.active, rowKey, row } : null;
       render();
       renderVideo();
     });
@@ -663,81 +698,95 @@ function render() {
   renderTabs();
 }
 
-function makeRowKey(row) {
-  return [row.Position, row.cleanCharacter, row.Player, row.Time, row['Post date (dd/mm/yyyy)'] || ''].join('|');
-}
-
 function renderVideo() {
   if (!state.selected || !state.selected.row) {
-    videoTitleEl.textContent = 'Select a run';
-    videoSubtitleEl.textContent = 'Choose any leaderboard row to embed the video here.';
-    videoAreaEl.className = 'placeholder';
-    videoAreaEl.innerHTML = 'No video selected';
-    videoExtraEl.innerHTML = '';
+    videoTitleEl.textContent = "Select a run";
+    videoSubtitleEl.textContent = "Choose any leaderboard row to embed the video here.";
+    videoAreaEl.className = "placeholder";
+    videoAreaEl.innerHTML = "No video selected";
+    videoExtraEl.innerHTML = "";
     return;
   }
 
   const row = state.selected.row;
-  const embed = yt(row['Speedrun video:']);
+  const embed = yt(row["Speedrun video:"]);
 
   videoTitleEl.textContent = `${row.Player} • ${row.cleanCharacter}`;
-  videoSubtitleEl.textContent = `${state.selected.dungeon} • ${row.Time} • ${row['Post date (dd/mm/yyyy)'] || ''}`;
+  videoSubtitleEl.textContent = `${state.selected.dungeon} • ${row.Time} • ${row["Post date (dd/mm/yyyy)"] || ""}`;
 
   const badges = [];
-  if (row.isWorldRecord) badges.push('WR');
-  if (row.isCharacterRecord) badges.push('Character Record');
+  if (row.isWorldRecord) badges.push("WR");
+  if (row.isCharacterRecord) badges.push("Character Record");
 
   if (!embed) {
-    videoAreaEl.className = 'placeholder';
-    videoAreaEl.innerHTML = 'Invalid or missing YouTube link';
-    videoExtraEl.innerHTML = '';
+    videoAreaEl.className = "placeholder";
+    videoAreaEl.innerHTML = "Invalid or missing YouTube link";
+    videoExtraEl.innerHTML = "";
     return;
   }
 
-  videoAreaEl.className = '';
-  videoAreaEl.innerHTML = `<div class="video-frame-wrap"><iframe class="video-frame" src="${escapeHtml(embed)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`;
+  videoAreaEl.className = "";
+  videoAreaEl.innerHTML = `
+    <div class="video-frame-wrap">
+      <iframe
+        class="video-frame"
+        src="${escapeHtml(embed)}"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+      ></iframe>
+    </div>
+  `;
+
   videoExtraEl.innerHTML = `
     Player: <strong>${escapeHtml(row.Player)}</strong><br>
     Character: <strong>${escapeHtml(row.cleanCharacter)}</strong><br>
     Position: <strong>${escapeHtml(row.Position)}</strong><br>
-    ${badges.length ? `Badges: <strong>${escapeHtml(badges.join(' • '))}</strong><br>` : ''}
-    <a href="${escapeHtml(row['Speedrun video:'])}" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
+    ${badges.length ? `Badges: <strong>${escapeHtml(badges.join(" • "))}</strong><br>` : ""}
+    <a href="${escapeHtml(row["Speedrun video:"])}" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
   `;
 }
 
-characterFilterEl.addEventListener('change', () => {
+characterFilterEl.addEventListener("change", () => {
   state.characterFilter = characterFilterEl.value;
+
   if (state.selected && state.selected.dungeon === state.active) {
     const visibleRows = getDisplayedRows();
     const stillVisible = visibleRows.some(row => makeRowKey(row) === state.selected.rowKey);
     if (!stillVisible) state.selected = null;
   }
+
   render();
   renderVideo();
 });
 
 async function load() {
-  for (const d in DUNGEONS) {
+  for (const dungeon in DUNGEONS) {
     try {
-      const r = await fetch(DUNGEONS[d], { cache: 'no-store' });
-      const t = await r.text();
-      state.data[d] = enrichRows(
-        parseSheetData(t).filter(x => x.Player && x.Time)
+      const response = await fetch(DUNGEONS[dungeon], { cache: "no-store" });
+      const text = await response.text();
+
+      state.data[dungeon] = enrichRows(
+        parseSheetData(text).filter(row =>
+          row.Player &&
+          row.Time &&
+          row.Character &&
+          row.Position &&
+          row["Speedrun video:"] &&
+          String(row.Player).trim().toLowerCase() !== "return home"
+        )
       );
     } catch (e) {
-      state.data[d] = [];
+      state.data[dungeon] = [];
     }
   }
 
   lastRefreshText = `updated ${new Date().toLocaleString()}`;
-  renderTabs();
-  populateCharacterFilter();
   render();
   renderVideo();
 }
 
+renderTabs();
 load();
-setInterval(load, 60 * 60 * 1000);
 </script>
 </body>
 </html>
