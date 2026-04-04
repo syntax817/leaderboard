@@ -763,6 +763,11 @@ async function load() {
   for (const dungeon in DUNGEONS) {
     try {
       const response = await fetch(DUNGEONS[dungeon], { cache: "no-store" });
+      if (!response.ok) {
+        state.data[dungeon] = [];
+        continue;
+      }
+
       const text = await response.text();
 
       state.data[dungeon] = enrichRows(
@@ -771,8 +776,7 @@ async function load() {
           row.Time &&
           row.Character &&
           row.Position &&
-          row["Speedrun video:"] &&
-          String(row.Player).trim().toLowerCase() !== "return home"
+          row["Speedrun video:"]
         )
       );
     } catch (e) {
