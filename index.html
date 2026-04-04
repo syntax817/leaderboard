@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Speedrun Leaderboards</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0f172a;
+      color: #ffffff;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-size: 32px;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 10px 14px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+
+    .tab.active {
+      background: #2563eb;
+      border-color: #2563eb;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #334155;
+      text-align: left;
+    }
+
+    th {
+      background: #1f2937;
+    }
+
+    tr:hover td {
+      background: #172033;
+    }
+
+    .player-link {
+      color: #60a5fa;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .empty {
+      padding: 20px;
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      color: #cbd5e1;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      z-index: 999;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-box {
+      width: min(1000px, 100%);
+      background: #0b1220;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #111827;
+      border-bottom: 1px solid #334155;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .close-btn {
+      border: 1px solid #475569;
+      background: #1e293b;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .video-frame {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: 0;
+      display: block;
+      background: #000;
+    }
+
+    .note {
+      margin-top: 14px;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Speedrun Leaderboards</h1>
+
+  <div class="tabs" id="tabs"></div>
+  <div id="content"></div>
+
+  <div class="note">
+    Put these files in your repo root: <strong>v1.csv</strong>, <strong>v2.csv</strong>, <strong>v3.csv</strong>, <strong>tod.csv</strong>
+  </div>
+
+  <div class="modal" id="videoModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Run Video</h2>
+        <button class="close-btn" id="closeModalBtn">Close</button>
+      </div>
+      <iframe
+        id="videoFrame"
+        class="video-frame"
+        src=""
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </div>
+
+  <script>
+    const DUNGEONS = {
+      "Void Invasion": "v1.csv",
+      "Void Taint": "v2.csv",
+      "Void Nightmare": "v3.csv",
+      "Tower of Disappearance": "tod.csv"
+    };
+
+    const state = {
+      activeDungeon: Object.keys(DUNGEONS)[0],
+      data: {}
+    };
+
+    const tabsEl = document.getElementById("tabs");
+    const contentEl = document.getElementById("content");
+    const modalEl = document.getElementById("videoModal");
+    const modalTitleEl = document.getElementById("modalTitle");
+    const videoFrameEl = document.getElementById("videoFrame");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function parseTimeToSeconds(timeText) {
+      const text = String(timeText || "").trim();
+      if (!text) return Number.POSITIVE_INFINITY;
+
+      const parts = text.split(":").map(Number);
+      if (parts.some(Number.isNaN)) return Number.POSITIVE_INFINITY;
+
+      if (parts.length === 2) {
+        return parts[0] * 60 + parts[1];
+      }
+
+      if (parts.length === 3) {
+        return parts[0] * 3600 + parts[1] * 60 + parts[2];
+      }
+
+      return Number.POSITIVE_INFINITY;
+    }
+
+    function getYoutubeEmbedUrl(url) {
+      if (!url) return "";
+
+      try {
+        const parsed = new URL(url);
+
+        if (parsed.hostname.includes("youtu.be")) {
+          const id = parsed.pathname.replace("/", "").trim();
+          return id ? `https://www.youtube.com/embed/${id}` : "";
+        }
+
+        if (parsed.hostname.includes("youtube.com")) {
+          const id = parsed.searchParams.get("v");
+          return id ? `https://www.youtube.com/embed/${id}` : "";
+        }
+      } catch (e) {
+        return "";
+      }
+
+      return "";
+    }
+
+    function parseCsvLine(line) {
+      const result = [];
+      let current = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const next = line[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === "," && !inQuotes) {
+          result.push(current);
+          current = "";
+        } else {
+          current += char;
+        }
+      }
+
+      result.push(current);
+      return result.map(v => v.trim());
+    }
+
+    function parseCsv(text) {
+      const lines = text
+        .replace(/\r/g, "")
+        .split("\n")
+        .filter(line => line.trim() !== "");
+
+      if (!lines.length) return [];
+
+      const headers = parseCsvLine(lines[0]);
+
+      return lines.slice(1).map(line => {
+        const values = parseCsvLine(line);
+        const row = {};
+
+        headers.forEach((header, index) => {
+          row[header] = values[index] ?? "";
+        });
+
+        return row;
+      });
+    }
+
+    function normalizeRows(rows) {
+      return rows
+        .map(row => ({
+          position: String(row["Position"] ?? "").trim(),
+          character: String(row["Character"] ?? "").trim(),
+          player: String(row["Player"] ?? "").trim(),
+          time: String(row["Time"] ?? "").trim(),
+          video: String(row["Speedrun video:"] ?? "").trim(),
+          postDate: String(row["Post date (dd/mm/yyyy)"] ?? "").trim()
+        }))
+        .filter(row => row.player && row.time)
+        .sort((a, b) => {
+          const timeDiff = parseTimeToSeconds(a.time) - parseTimeToSeconds(b.time);
+          if (timeDiff !== 0) return timeDiff;
+          return a.character.localeCompare(b.character);
+        });
+    }
+
+    function renderTabs() {
+      tabsEl.innerHTML = "";
+
+      Object.keys(DUNGEONS).forEach(dungeon => {
+        const btn = document.createElement("button");
+        btn.className = "tab" + (state.activeDungeon === dungeon ? " active" : "");
+        btn.textContent = dungeon;
+        btn.onclick = () => {
+          state.activeDungeon = dungeon;
+          renderTabs();
+          renderTable();
+        };
+        tabsEl.appendChild(btn);
+      });
+    }
+
+    function renderTable() {
+      const rows = state.data[state.activeDungeon] || [];
+
+      if (!rows.length) {
+        contentEl.innerHTML = `
+          <div class="empty">
+            No runs found for <strong>${escapeHtml(state.activeDungeon)}</strong>.
+          </div>
+        `;
+        return;
+      }
+
+      contentEl.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Position</th>
+                <th>Character</th>
+                <th>Player</th>
+                <th>Time</th>
+                <th>Post Date</th>
+                <th>Video</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(row => `
+                <tr>
+                  <td>${escapeHtml(row.position || "-")}</td>
+                  <td>${escapeHtml(row.character || "-")}</td>
+                  <td>
+                    ${
+                      row.video
+                        ? `<span class="player-link" data-video="${escapeHtml(row.video)}" data-player="${escapeHtml(row.player)}" data-character="${escapeHtml(row.character)}">${escapeHtml(row.player)}</span>`
+                        : escapeHtml(row.player)
+                    }
+                  </td>
+                  <td>${escapeHtml(row.time || "-")}</td>
+                  <td>${escapeHtml(row.postDate || "-")}</td>
+                  <td>
+                    ${
+                      row.video
+                        ? `<a href="${escapeHtml(row.video)}" target="_blank" rel="noopener noreferrer">Open link</a>`
+                        : "-"
+                    }
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      contentEl.querySelectorAll(".player-link").forEach(el => {
+        el.addEventListener("click", () => {
+          const videoUrl = el.getAttribute("data-video");
+          const player = el.getAttribute("data-player");
+          const character = el.getAttribute("data-character");
+          openVideo(videoUrl, player, character);
+        });
+      });
+    }
+
+    function openVideo(url, player, character) {
+      const embedUrl = getYoutubeEmbedUrl(url);
+      if (!embedUrl) {
+        alert("Invalid YouTube URL.");
+        return;
+      }
+
+      modalTitleEl.textContent = `${player} • ${character}`;
+      videoFrameEl.src = embedUrl;
+      modalEl.classList.add("open");
+    }
+
+    function closeVideo() {
+      videoFrameEl.src = "";
+      modalEl.classList.remove("open");
+    }
+
+    async function loadAllCsvs() {
+      const entries = Object.entries(DUNGEONS);
+
+      for (const [dungeon, filename] of entries) {
+        try {
+          const response = await fetch(filename, { cache: "no-store" });
+          if (!response.ok) {
+            state.data[dungeon] = [];
+            continue;
+          }
+
+          const text = await response.text();
+          const rows = parseCsv(text);
+          state.data[dungeon] = normalizeRows(rows);
+        } catch (error) {
+          state.data[dungeon] = [];
+        }
+      }
+
+      renderTabs();
+      renderTable();
+    }
+
+    closeModalBtn.addEventListener("click", closeVideo);
+
+    modalEl.addEventListener("click", (event) => {
+      if (event.target === modalEl) {
+        closeVideo();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeVideo();
+      }
+    });
+
+    loadAllCsvs();
+  </script>
+</body>
+</html>
