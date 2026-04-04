@@ -10,7 +10,6 @@
       --red: #ff3b3b;
       --orange: #ff7a18;
       --purple: #7c3aed;
-      --dark: #0b0f1a;
       --panel: rgba(10, 15, 30, 0.86);
       --border: rgba(255,255,255,0.15);
       --text: #f5f7ff;
@@ -24,7 +23,7 @@
 
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
       color: var(--text);
       background:
         linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)),
@@ -32,14 +31,17 @@
     }
 
     .container {
-      width: min(1500px, calc(100% - 32px));
+      width: min(1450px, calc(100% - 32px));
       margin: 0 auto;
       padding: 24px 0 40px;
     }
 
     h1 {
       margin: 0 0 10px;
-      font-size: 42px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 46px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
       background: linear-gradient(90deg, var(--red), var(--orange));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -52,8 +54,8 @@
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(700px, 1.15fr) minmax(620px, 1fr);
-      gap: 20px;
+      grid-template-columns: minmax(760px, 1.22fr) minmax(500px, 0.9fr);
+      gap: 18px;
       align-items: start;
     }
 
@@ -73,14 +75,6 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .header-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
     .header-title {
       font-size: 24px;
       font-weight: 700;
@@ -92,34 +86,85 @@
       margin-top: 4px;
     }
 
-    .controls {
-      display: flex;
+    .top-three {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
-      padding: 0 16px 14px;
-      flex-wrap: wrap;
+      padding: 14px 16px 4px;
     }
 
-    .filter-box {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 220px;
+    .top-card {
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(255,255,255,0.04);
+      min-width: 0;
     }
 
-    .filter-box label {
+    .top-card.first {
+      background: linear-gradient(135deg, rgba(255,215,0,0.18), rgba(255,122,24,0.12));
+      border-color: rgba(255,215,0,0.3);
+    }
+
+    .top-card.second {
+      background: linear-gradient(135deg, rgba(192,192,192,0.14), rgba(124,58,237,0.10));
+      border-color: rgba(192,192,192,0.25);
+    }
+
+    .top-card.third {
+      background: linear-gradient(135deg, rgba(205,127,50,0.18), rgba(255,59,59,0.10));
+      border-color: rgba(205,127,50,0.25);
+    }
+
+    .top-rank {
       font-size: 12px;
-      text-transform: uppercase;
+      font-weight: 800;
       letter-spacing: 0.08em;
+      text-transform: uppercase;
       color: var(--muted);
+      margin-bottom: 8px;
     }
 
-    select {
-      background: rgba(255,255,255,0.05);
-      color: var(--text);
-      border: 1px solid var(--border);
+    .top-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .top-icon {
+      width: 36px;
+      height: 36px;
       border-radius: 10px;
-      padding: 10px 12px;
-      outline: none;
+      object-fit: cover;
+      flex: 0 0 auto;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .top-name-wrap {
+      min-width: 0;
+    }
+
+    .top-character {
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .top-player {
+      color: var(--orange);
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .top-time {
+      margin-top: 8px;
+      font-size: 18px;
+      font-weight: 800;
     }
 
     .tabs {
@@ -137,6 +182,10 @@
       cursor: pointer;
       font-weight: bold;
       transition: 0.15s ease;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .tab:hover {
@@ -147,6 +196,20 @@
     .tab.active {
       background: linear-gradient(135deg, var(--red), var(--purple));
       border: none;
+    }
+
+    .tab-spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    .tab.loading .tab-spinner {
+      display: inline-block;
     }
 
     .table-wrap {
@@ -161,7 +224,7 @@
     }
 
     col.col-pos { width: 72px; }
-    col.col-character { width: 38%; }
+    col.col-character { width: 40%; }
     col.col-player { width: 24%; }
     col.col-time { width: 14%; }
     col.col-date { width: 18%; }
@@ -189,7 +252,7 @@
 
     tbody tr {
       cursor: pointer;
-      transition: background 0.15s ease, transform 0.15s ease;
+      transition: background 0.15s ease;
     }
 
     tbody tr:hover td {
@@ -209,14 +272,16 @@
     .rank.rank-2 { color: var(--silver); }
     .rank.rank-3 { color: var(--bronze); }
 
-    .character-cell {
+    .character-cell,
+    .video-card-main {
       display: flex;
       align-items: center;
       gap: 10px;
       min-width: 0;
     }
 
-    .character-icon {
+    .character-icon,
+    .video-card-icon {
       width: 30px;
       height: 30px;
       border-radius: 8px;
@@ -226,14 +291,22 @@
       flex: 0 0 auto;
     }
 
-    .character-name {
+    .video-card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+    }
+
+    .character-name,
+    .video-card-text {
       font-weight: 700;
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    .player-name {
+    .player-name,
+    .video-card-player {
       color: var(--orange);
       font-weight: 700;
     }
@@ -250,6 +323,16 @@
       line-height: 1.4;
     }
 
+    .video-card {
+      padding: 14px 16px 0;
+    }
+
+    .video-card-sub {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 6px;
+    }
+
     .video-frame-wrap {
       padding: 16px;
     }
@@ -257,7 +340,7 @@
     .video-frame {
       width: 100%;
       aspect-ratio: 16 / 9;
-      min-height: 460px;
+      min-height: 400px;
       border: 0;
       background: black;
       display: block;
@@ -271,21 +354,33 @@
       line-height: 1.5;
     }
 
-    .video-extra a {
-      color: var(--orange);
-      text-decoration: none;
-      font-weight: 700;
+    .video-actions {
+      display: flex;
+      gap: 10px;
+      padding: 0 16px 14px;
+      flex-wrap: wrap;
     }
 
-    .video-extra a:hover {
-      text-decoration: underline;
+    .action-btn {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .action-btn:hover {
+      background: rgba(255,255,255,0.09);
     }
 
     .placeholder {
       padding: 48px 24px;
       text-align: center;
       color: var(--muted);
-      min-height: 520px;
+      min-height: 440px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -296,12 +391,62 @@
       color: var(--muted);
     }
 
+    .loading-shell {
+      padding: 12px 12px 18px;
+    }
+
+    .skeleton-row {
+      display: grid;
+      grid-template-columns: 72px 40% 24% 14% 18%;
+      gap: 12px;
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .skeleton-block,
+    .video-skeleton {
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.14), rgba(255,255,255,0.06));
+      background-size: 200% 100%;
+      animation: shimmer 1.2s linear infinite;
+    }
+
+    .skeleton-block {
+      height: 18px;
+    }
+
+    .video-loading {
+      padding: 16px;
+    }
+
+    .video-skeleton {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      min-height: 400px;
+      border-radius: 12px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
     @media (max-width: 1200px) {
       .layout {
         grid-template-columns: 1fr;
       }
 
-      .video-frame {
+      .top-three {
+        grid-template-columns: 1fr;
+      }
+
+      .video-frame,
+      .video-skeleton {
         min-height: 360px;
       }
 
@@ -319,25 +464,12 @@
     <div class="layout">
       <div class="panel">
         <div class="panel-header">
-          <div class="header-top">
-            <div>
-              <div class="header-title" id="title"></div>
-              <div class="header-meta" id="headerMeta"></div>
-            </div>
-          </div>
+          <div class="header-title" id="title"></div>
+          <div class="header-meta" id="headerMeta"></div>
         </div>
 
+        <div id="topThree"></div>
         <div class="tabs" id="tabs"></div>
-
-        <div class="controls">
-          <div class="filter-box">
-            <label for="characterFilter">Filter character</label>
-            <select id="characterFilter">
-              <option value="">All Characters</option>
-            </select>
-          </div>
-        </div>
-
         <div id="table"></div>
       </div>
 
@@ -346,7 +478,12 @@
           <div class="video-header-title" id="videoTitle">Select a run</div>
           <div class="video-subtitle" id="videoSubtitle">Choose any leaderboard row to embed the video here.</div>
         </div>
+        <div id="videoCard"></div>
         <div id="videoArea" class="placeholder">No video selected</div>
+        <div class="video-actions" id="videoActions" style="display:none;">
+          <a class="action-btn" id="youtubeButton" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
+          <button class="action-btn" id="copyButton" type="button">Copy video link</button>
+        </div>
         <div class="video-extra" id="videoExtra"></div>
       </div>
     </div>
@@ -360,21 +497,28 @@ const DUNGEONS = {
   "Tower of Disappearance": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTdROeXMSm_mkP7vXqzSOt0y5p7kIKOdCJx_XUoJjQ1SC4ycm0gt7QdEn25cagvWRQhITRVxh9YMtj-/pub?gid=1230006600&single=true&output=csv"
 };
 
+const dungeonOrder = Object.keys(DUNGEONS);
+
 let state = {
   active: "Void Invasion",
   data: {},
   selected: null,
-  characterFilter: ""
+  loadingDungeon: false,
+  loadingTabs: new Set()
 };
 
-const characterFilterEl = document.getElementById("characterFilter");
 const titleEl = document.getElementById("title");
 const headerMetaEl = document.getElementById("headerMeta");
+const topThreeEl = document.getElementById("topThree");
 const tableEl = document.getElementById("table");
 const tabsEl = document.getElementById("tabs");
 const videoTitleEl = document.getElementById("videoTitle");
 const videoSubtitleEl = document.getElementById("videoSubtitle");
+const videoCardEl = document.getElementById("videoCard");
 const videoAreaEl = document.getElementById("videoArea");
+const videoActionsEl = document.getElementById("videoActions");
+const youtubeButtonEl = document.getElementById("youtubeButton");
+const copyButtonEl = document.getElementById("copyButton");
 const videoExtraEl = document.getElementById("videoExtra");
 let lastRefreshText = "";
 
@@ -388,10 +532,6 @@ function escapeHtml(value) {
 }
 
 function parseDelimitedLine(line, delimiter) {
-  if (delimiter === "\t") {
-    return line.split("\t").map(value => value.trim());
-  }
-
   const values = [];
   let current = "";
   let inQuotes = false;
@@ -489,16 +629,12 @@ function positionValue(position) {
 
 function enrichRows(rows) {
   return rows
-    .map(row => {
-      const cleanCharacter = normalizeCharacterName(row.Character);
-      const timeSeconds = seconds(row.Time);
-      return {
-        ...row,
-        cleanCharacter,
-        iconFile: iconFileFromCharacter(row.Character),
-        timeSeconds
-      };
-    })
+    .map(row => ({
+      ...row,
+      cleanCharacter: normalizeCharacterName(row.Character),
+      iconFile: iconFileFromCharacter(row.Character),
+      timeSeconds: seconds(row.Time)
+    }))
     .sort((a, b) => {
       const timeDiff = a.timeSeconds - b.timeSeconds;
       if (timeDiff !== 0) return timeDiff;
@@ -519,58 +655,89 @@ function makeRowKey(row) {
 }
 
 function getDisplayedRows() {
-  const rows = state.data[state.active] || [];
-  if (!state.characterFilter) return rows;
-  return rows.filter(row => row.cleanCharacter === state.characterFilter);
-}
-
-function populateCharacterFilter() {
-  const allRows = state.data[state.active] || [];
-  const characters = [...new Set(allRows.map(row => row.cleanCharacter))]
-    .filter(Boolean)
-    .sort((a, b) => a.localeCompare(b));
-
-  characterFilterEl.innerHTML =
-    '<option value="">All Characters</option>' +
-    characters.map(character => `<option value="${escapeHtml(character)}">${escapeHtml(character)}</option>`).join("");
-
-  if (state.characterFilter && !characters.includes(state.characterFilter)) {
-    state.characterFilter = "";
-  }
-
-  characterFilterEl.value = state.characterFilter;
+  return state.data[state.active] || [];
 }
 
 function renderTabs() {
   tabsEl.innerHTML = "";
-  Object.keys(DUNGEONS).forEach(d => {
-    const el = document.createElement("div");
-    el.className = "tab " + (state.active === d ? "active" : "");
-    el.textContent = d;
+  Object.keys(DUNGEONS).forEach(dungeon => {
+    const el = document.createElement("button");
+    el.className = "tab " + (state.active === dungeon ? "active" : "") + (state.loadingTabs.has(dungeon) ? " loading" : "");
+    el.type = "button";
+    el.innerHTML = `<span>${escapeHtml(dungeon)}</span><span class="tab-spinner"></span>`;
     el.onclick = async () => {
-      state.active = d;
+      state.active = dungeon;
       state.selected = null;
-      state.characterFilter = "";
 
-      if (!state.data[d]) {
-        await loadDungeon(d);
+      if (!state.data[dungeon]) {
+        state.loadingDungeon = true;
+        state.loadingTabs.add(dungeon);
+        render();
+        renderVideo();
+        await loadDungeon(dungeon);
+        state.loadingTabs.delete(dungeon);
+        state.loadingDungeon = false;
       }
 
       render();
       renderVideo();
+      const selectedRow = tableEl.querySelector("tbody tr.active-row");
+      if (selectedRow) {
+        selectedRow.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
     };
     tabsEl.appendChild(el);
   });
 }
 
+function renderTopThree(rows) {
+  const top = rows.slice(0, 3);
+  if (!top.length) {
+    topThreeEl.innerHTML = "";
+    return;
+  }
+
+  const classes = ["first", "second", "third"];
+  topThreeEl.className = "top-three";
+  topThreeEl.innerHTML = top.map((row, index) => `
+    <div class="top-card ${classes[index] || ""}">
+      <div class="top-rank">Top ${index + 1}</div>
+      <div class="top-main">
+        <img class="top-icon" src="${escapeHtml(row.iconFile)}" alt="${escapeHtml(row.cleanCharacter)}" onerror="this.style.display='none'">
+        <div class="top-name-wrap">
+          <div class="top-character">${escapeHtml(row.cleanCharacter)}</div>
+          <div class="top-player">${escapeHtml(row.Player)}</div>
+        </div>
+      </div>
+      <div class="top-time">${escapeHtml(row.Time)}</div>
+    </div>
+  `).join("");
+}
+
 function render() {
   titleEl.textContent = state.active;
-  populateCharacterFilter();
 
-  const allRows = state.data[state.active] || [];
   const rows = getDisplayedRows();
+  headerMetaEl.textContent = `${rows.length} total${lastRefreshText ? ` • ${lastRefreshText}` : ""}`;
+  renderTopThree(rows);
 
-  headerMetaEl.textContent = `${rows.length} shown • ${allRows.length} total${lastRefreshText ? ` • ${lastRefreshText}` : ""}`;
+  if (state.loadingDungeon && !rows.length) {
+    tableEl.innerHTML = `
+      <div class="loading-shell">
+        ${Array.from({ length: 8 }).map(() => `
+          <div class="skeleton-row">
+            <div class="skeleton-block"></div>
+            <div class="skeleton-block"></div>
+            <div class="skeleton-block"></div>
+            <div class="skeleton-block"></div>
+            <div class="skeleton-block"></div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+    renderTabs();
+    return;
+  }
 
   if (!rows.length) {
     tableEl.innerHTML = `<div class="empty">No runs found for ${escapeHtml(state.active)}.</div>`;
@@ -598,40 +765,31 @@ function render() {
           </tr>
         </thead>
         <tbody>
-          ${rows.map(r => {
-            const activeClass =
-              state.selected &&
-              state.selected.dungeon === state.active &&
-              state.selected.rowKey === makeRowKey(r)
-                ? "active-row"
-                : "";
+          ${rows.map(row => {
+            const activeClass = state.selected && state.selected.dungeon === state.active && state.selected.rowKey === makeRowKey(row)
+              ? "active-row"
+              : "";
 
-            const rankClass =
-              r.Position === "1"
-                ? "rank rank-1"
-                : r.Position === "2"
-                ? "rank rank-2"
-                : r.Position === "3"
-                ? "rank rank-3"
-                : "rank";
+            const rankClass = row.Position === "1"
+              ? "rank rank-1"
+              : row.Position === "2"
+              ? "rank rank-2"
+              : row.Position === "3"
+              ? "rank rank-3"
+              : "rank";
 
             return `
-              <tr class="${activeClass}" data-row-key="${escapeHtml(makeRowKey(r))}">
-                <td class="${rankClass}">${escapeHtml(r.Position)}</td>
+              <tr class="${activeClass}" data-row-key="${escapeHtml(makeRowKey(row))}">
+                <td class="${rankClass}">${escapeHtml(row.Position)}</td>
                 <td>
                   <div class="character-cell">
-                    <img
-                      class="character-icon"
-                      src="${escapeHtml(r.iconFile)}"
-                      alt="${escapeHtml(r.cleanCharacter)}"
-                      onerror="this.style.display='none'"
-                    >
-                    <span class="character-name">${escapeHtml(r.cleanCharacter)}</span>
+                    <img class="character-icon" src="${escapeHtml(row.iconFile)}" alt="${escapeHtml(row.cleanCharacter)}" onerror="this.style.display='none'">
+                    <span class="character-name">${escapeHtml(row.cleanCharacter)}</span>
                   </div>
                 </td>
-                <td><span class="player-name">${escapeHtml(r.Player)}</span></td>
-                <td>${escapeHtml(r.Time)}</td>
-                <td>${escapeHtml(r["Post date (dd/mm/yyyy)"] || "")}</td>
+                <td><span class="player-name">${escapeHtml(row.Player)}</span></td>
+                <td>${escapeHtml(row.Time)}</td>
+                <td>${escapeHtml(row["Post date (dd/mm/yyyy)"] || "")}</td>
               </tr>
             `;
           }).join("")}
@@ -647,6 +805,10 @@ function render() {
       state.selected = row ? { dungeon: state.active, rowKey, row } : null;
       render();
       renderVideo();
+      const selectedRow = tableEl.querySelector("tbody tr.active-row");
+      if (selectedRow) {
+        selectedRow.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
     });
   });
 
@@ -654,11 +816,24 @@ function render() {
 }
 
 function renderVideo() {
+  if (state.loadingDungeon && !state.selected) {
+    videoTitleEl.textContent = "Loading runs...";
+    videoSubtitleEl.textContent = "Fetching leaderboard data from the sheet.";
+    videoCardEl.innerHTML = "";
+    videoAreaEl.className = "";
+    videoAreaEl.innerHTML = `<div class="video-loading"><div class="video-skeleton"></div></div>`;
+    videoActionsEl.style.display = "none";
+    videoExtraEl.innerHTML = "";
+    return;
+  }
+
   if (!state.selected || !state.selected.row) {
     videoTitleEl.textContent = "Select a run";
     videoSubtitleEl.textContent = "Choose any leaderboard row to embed the video here.";
+    videoCardEl.innerHTML = "";
     videoAreaEl.className = "placeholder";
     videoAreaEl.innerHTML = "No video selected";
+    videoActionsEl.style.display = "none";
     videoExtraEl.innerHTML = "";
     return;
   }
@@ -669,9 +844,23 @@ function renderVideo() {
   videoTitleEl.textContent = `${row.Player} • ${row.cleanCharacter}`;
   videoSubtitleEl.textContent = `${state.selected.dungeon} • ${row.Time} • ${row["Post date (dd/mm/yyyy)"] || ""}`;
 
+  videoCardEl.innerHTML = `
+    <div class="video-card">
+      <div class="video-card-main">
+        <img class="video-card-icon" src="${escapeHtml(row.iconFile)}" alt="${escapeHtml(row.cleanCharacter)}" onerror="this.style.display='none'">
+        <div class="video-card-text">
+          <div>${escapeHtml(row.cleanCharacter)}</div>
+          <div class="video-card-player">${escapeHtml(row.Player)}</div>
+        </div>
+      </div>
+      <div class="video-card-sub">Position ${escapeHtml(row.Position)} • ${escapeHtml(row.Time)}</div>
+    </div>
+  `;
+
   if (!embed) {
     videoAreaEl.className = "placeholder";
     videoAreaEl.innerHTML = "Invalid or missing YouTube link";
+    videoActionsEl.style.display = "none";
     videoExtraEl.innerHTML = "";
     return;
   }
@@ -679,35 +868,14 @@ function renderVideo() {
   videoAreaEl.className = "";
   videoAreaEl.innerHTML = `
     <div class="video-frame-wrap">
-      <iframe
-        class="video-frame"
-        src="${escapeHtml(embed)}"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen
-      ></iframe>
+      <iframe class="video-frame" src="${escapeHtml(embed)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
     </div>
   `;
 
-  videoExtraEl.innerHTML = `
-    Player: <strong>${escapeHtml(row.Player)}</strong><br>
-    Character: <strong>${escapeHtml(row.cleanCharacter)}</strong><br>
-    Position: <strong>${escapeHtml(row.Position)}</strong><br>
-    <a href="${escapeHtml(row["Speedrun video:"])}" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
-  `;
+  youtubeButtonEl.href = row["Speedrun video:"];
+  videoActionsEl.style.display = "flex";
+  videoExtraEl.innerHTML = `Submitted on ${escapeHtml(row["Post date (dd/mm/yyyy)"] || "")}.`;
 }
-
-characterFilterEl.addEventListener("change", () => {
-  state.characterFilter = characterFilterEl.value;
-
-  if (state.selected && state.selected.dungeon === state.active) {
-    const visibleRows = getDisplayedRows();
-    const stillVisible = visibleRows.some(row => makeRowKey(row) === state.selected.rowKey);
-    if (!stillVisible) state.selected = null;
-  }
-
-  render();
-  renderVideo();
-});
 
 async function loadDungeon(dungeon) {
   try {
@@ -718,7 +886,6 @@ async function loadDungeon(dungeon) {
     }
 
     const text = await response.text();
-
     state.data[dungeon] = enrichRows(
       parseSheetData(text).filter(row =>
         row.Player &&
@@ -733,12 +900,45 @@ async function loadDungeon(dungeon) {
   }
 }
 
+function preloadRemainingDungeons() {
+  dungeonOrder
+    .filter(dungeon => dungeon !== state.active && !state.data[dungeon])
+    .forEach(async dungeon => {
+      state.loadingTabs.add(dungeon);
+      renderTabs();
+      await loadDungeon(dungeon);
+      state.loadingTabs.delete(dungeon);
+      renderTabs();
+    });
+}
+
 async function load() {
+  state.loadingDungeon = true;
+  render();
+  renderVideo();
   await loadDungeon(state.active);
+  state.loadingDungeon = false;
   lastRefreshText = `updated ${new Date().toLocaleString()}`;
   render();
   renderVideo();
+  preloadRemainingDungeons();
 }
+
+copyButtonEl.addEventListener("click", async () => {
+  if (!state.selected || !state.selected.row) return;
+  try {
+    await navigator.clipboard.writeText(state.selected.row["Speedrun video:"] || "");
+    copyButtonEl.textContent = "Copied";
+    setTimeout(() => {
+      copyButtonEl.textContent = "Copy video link";
+    }, 1200);
+  } catch (e) {
+    copyButtonEl.textContent = "Copy failed";
+    setTimeout(() => {
+      copyButtonEl.textContent = "Copy video link";
+    }, 1200);
+  }
+});
 
 renderTabs();
 load();
