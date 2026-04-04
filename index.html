@@ -463,10 +463,18 @@ function parseSheetData(text) {
 
   if (!lines.length) return [];
 
-  const delimiter = lines[0].includes("\t") ? "\t" : ",";
-  const keys = parseDelimitedLine(lines[0], delimiter);
+  // 🔥 find the actual header row (starts with Position)
+  const headerIndex = lines.findIndex(line =>
+    line.toLowerCase().includes("position") &&
+    line.toLowerCase().includes("character")
+  );
 
-  return lines.slice(1).map(line => {
+  if (headerIndex === -1) return [];
+
+  const delimiter = lines[headerIndex].includes("\t") ? "\t" : ",";
+  const keys = parseDelimitedLine(lines[headerIndex], delimiter);
+
+  return lines.slice(headerIndex + 1).map(line => {
     const values = parseDelimitedLine(line, delimiter);
     const obj = {};
     keys.forEach((k, i) => {
