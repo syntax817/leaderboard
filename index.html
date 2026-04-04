@@ -11,7 +11,7 @@
       --orange: #ff7a18;
       --purple: #7c3aed;
       --dark: #0b0f1a;
-      --panel: rgba(10, 15, 30, 0.85);
+      --panel: rgba(10, 15, 30, 0.86);
       --border: rgba(255,255,255,0.15);
       --text: #f5f7ff;
       --muted: #9aa6c0;
@@ -26,7 +26,6 @@
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
       color: var(--text);
-
       background:
         linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)),
         url('background.jpg') center / cover no-repeat fixed;
@@ -55,17 +54,21 @@
       display: grid;
       grid-template-columns: 1.3fr 0.9fr;
       gap: 20px;
+      align-items: start;
     }
 
-    .panel {
+    .panel,
+    .video-panel {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 16px;
       backdrop-filter: blur(6px);
       overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.28);
     }
 
-    .panel-header {
+    .panel-header,
+    .video-header {
       padding: 16px;
       border-bottom: 1px solid var(--border);
     }
@@ -74,6 +77,7 @@
       display: flex;
       gap: 10px;
       padding: 10px 16px;
+      flex-wrap: wrap;
     }
 
     .tab {
@@ -83,6 +87,12 @@
       border: 1px solid var(--border);
       cursor: pointer;
       font-weight: bold;
+      transition: 0.15s ease;
+    }
+
+    .tab:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.28);
     }
 
     .tab.active {
@@ -90,59 +100,124 @@
       border: none;
     }
 
+    .table-wrap {
+      padding: 0 12px 12px;
+      overflow-x: auto;
+    }
+
     table {
       width: 100%;
+      min-width: 760px;
       border-collapse: collapse;
+      table-layout: fixed;
     }
+
+    col.col-pos { width: 90px; }
+    col.col-character { width: 320px; }
+    col.col-player { width: 220px; }
+    col.col-time { width: 130px; }
+    col.col-date { width: 160px; }
 
     th, td {
       padding: 12px;
       border-bottom: 1px solid rgba(255,255,255,0.08);
+      vertical-align: middle;
     }
 
     th {
       font-size: 12px;
       color: var(--muted);
       text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-align: left;
+      white-space: nowrap;
     }
 
-    tr:hover td {
-      background: rgba(255,255,255,0.05);
+    td {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    tbody tr:hover td {
+      background: rgba(255,255,255,0.06);
+    }
+
+    tbody tr.active-row td {
+      background: rgba(124, 58, 237, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), inset 0 -1px 0 rgba(255,255,255,0.03);
+    }
+
+    .rank {
+      font-weight: 800;
     }
 
     .rank.rank-1 { color: var(--gold); }
     .rank.rank-2 { color: var(--silver); }
     .rank.rank-3 { color: var(--bronze); }
 
-    .player-link {
-      color: var(--orange);
-      cursor: pointer;
-      font-weight: bold;
+    .character-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
     }
 
-    .video-panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 16px;
+    .character-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.05);
+      flex: 0 0 auto;
+    }
+
+    .character-name {
+      font-weight: 700;
+      min-width: 0;
       overflow: hidden;
-      backdrop-filter: blur(6px);
+      text-overflow: ellipsis;
     }
 
-    .video-header {
-      padding: 16px;
-      border-bottom: 1px solid var(--border);
+    .player-name {
+      color: var(--orange);
+      font-weight: 700;
+    }
+
+    .video-header-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .video-subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
     }
 
     .video-frame {
       width: 100%;
-      aspect-ratio: 16/9;
+      aspect-ratio: 16 / 9;
       border: 0;
       background: black;
+      display: block;
     }
 
     .placeholder {
       padding: 40px;
       text-align: center;
+      color: var(--muted);
+    }
+
+    .empty {
+      padding: 18px 16px 22px;
       color: var(--muted);
     }
 
@@ -156,7 +231,7 @@
 <body>
   <div class="container">
     <h1>Grand Chase Leaderboards</h1>
-    <div class="subtitle">Speedrun rankings • Click a player to watch the run</div>
+    <div class="subtitle">Speedrun rankings • Click any row to watch the run</div>
 
     <div class="layout">
       <div class="panel">
@@ -167,7 +242,8 @@
 
       <div class="video-panel">
         <div class="video-header">
-          <div id="videoTitle">Select a run</div>
+          <div class="video-header-title" id="videoTitle">Select a run</div>
+          <div class="video-subtitle" id="videoSubtitle">Choose any leaderboard row to embed the video here.</div>
         </div>
         <div id="videoArea" class="placeholder">No video selected</div>
       </div>
@@ -182,72 +258,199 @@ const DUNGEONS = {
   "Tower of Disappearance": "tod.csv"
 };
 
-let state = { active: Object.keys(DUNGEONS)[0], data: {}, video:null };
+let state = {
+  active: Object.keys(DUNGEONS)[0],
+  data: {},
+  selected: null
+};
 
-function parseTSV(text){
-  const [header,...lines]=text.trim().split("\n");
-  const keys=header.split("\t");
-  return lines.map(l=>{
-    const v=l.split("\t");
-    let o={}; keys.forEach((k,i)=>o[k]=v[i]); return o;
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function parseTSV(text) {
+  const lines = text.replace(/\r/g, '').split('\n').filter(line => line.trim() !== '');
+  if (!lines.length) return [];
+  const keys = lines[0].split('\t').map(x => x.trim());
+  return lines.slice(1).map(line => {
+    const values = line.split('\t');
+    const obj = {};
+    keys.forEach((k, i) => obj[k] = (values[i] ?? '').trim());
+    return obj;
   });
 }
 
-function seconds(t){
-  let p=t.split(":").map(Number);
-  return p[0]*60+p[1];
+function seconds(t) {
+  const parts = String(t || '').split(':').map(Number);
+  if (parts.length === 2 && !parts.some(Number.isNaN)) return parts[0] * 60 + parts[1];
+  if (parts.length === 3 && !parts.some(Number.isNaN)) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  return Number.POSITIVE_INFINITY;
 }
 
-function yt(url){
-  let id=url.split("v=")[1]?.split("&")[0]||url.split("/").pop();
-  return `https://www.youtube.com/embed/${id}`;
+function yt(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname.includes('youtu.be')) {
+      const id = parsed.pathname.replace('/', '').trim();
+      return id ? `https://www.youtube.com/embed/${id}` : '';
+    }
+    if (parsed.hostname.includes('youtube.com')) {
+      const id = parsed.searchParams.get('v');
+      return id ? `https://www.youtube.com/embed/${id}` : '';
+    }
+  } catch (e) {}
+  return '';
 }
 
-function renderTabs(){
-  tabs.innerHTML="";
-  Object.keys(DUNGEONS).forEach(d=>{
-    let el=document.createElement("div");
-    el.className="tab "+(state.active===d?"active":"");
-    el.textContent=d;
-    el.onclick=()=>{state.active=d;render();};
+function normalizeCharacterName(rawName) {
+  const clean = String(rawName || '').replace(/^\d+\)\s*/, '').trim();
+  return clean;
+}
+
+function iconFileFromCharacter(rawName) {
+  const name = normalizeCharacterName(rawName)
+    .toLowerCase()
+    .replace(/\//g, '-')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+  return name ? `${name}.jpg` : '';
+}
+
+function renderTabs() {
+  tabs.innerHTML = '';
+  Object.keys(DUNGEONS).forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'tab ' + (state.active === d ? 'active' : '');
+    el.textContent = d;
+    el.onclick = () => {
+      state.active = d;
+      state.selected = null;
+      render();
+      renderVideo();
+    };
     tabs.appendChild(el);
   });
 }
 
-function render(){
-  title.textContent=state.active;
-  let rows=state.data[state.active]||[];
+function render() {
+  title.textContent = state.active;
+  const rows = state.data[state.active] || [];
 
-  table.innerHTML=`<table><thead><tr>
-    <th>Pos</th><th>Character</th><th>Player</th><th>Time</th>
-  </tr></thead><tbody>
-  ${rows.map(r=>`
-    <tr>
-      <td class="rank rank-${r.Position}">${r.Position}</td>
-      <td>${r.Character}</td>
-      <td><span class="player-link" onclick="play('${r['Speedrun video:']}','${r.Player}')">${r.Player}</span></td>
-      <td>${r.Time}</td>
-    </tr>
-  `).join('')}
-  </tbody></table>`;
+  if (!rows.length) {
+    table.innerHTML = `<div class="empty">No runs found for ${escapeHtml(state.active)}.</div>`;
+    renderTabs();
+    return;
+  }
+
+  table.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <colgroup>
+          <col class="col-pos">
+          <col class="col-character">
+          <col class="col-player">
+          <col class="col-time">
+          <col class="col-date">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Pos</th>
+            <th>Character</th>
+            <th>Player</th>
+            <th>Time</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, index) => {
+            const activeClass = state.selected && state.selected.dungeon === state.active && state.selected.index === index ? 'active-row' : '';
+            const rankClass = r.Position === '1' ? 'rank rank-1' : r.Position === '2' ? 'rank rank-2' : r.Position === '3' ? 'rank rank-3' : 'rank';
+            const normalizedCharacter = normalizeCharacterName(r.Character);
+            const iconFile = iconFileFromCharacter(r.Character);
+
+            return `
+              <tr class="${activeClass}" data-index="${index}">
+                <td class="${rankClass}">${escapeHtml(r.Position)}</td>
+                <td>
+                  <div class="character-cell">
+                    <img
+                      class="character-icon"
+                      src="${escapeHtml(iconFile)}"
+                      alt="${escapeHtml(normalizedCharacter)}"
+                      onerror="this.style.display='none'"
+                    >
+                    <span class="character-name">${escapeHtml(normalizedCharacter)}</span>
+                  </div>
+                </td>
+                <td><span class="player-name">${escapeHtml(r.Player)}</span></td>
+                <td>${escapeHtml(r.Time)}</td>
+                <td>${escapeHtml(r['Post date (dd/mm/yyyy)'] || '')}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  table.querySelectorAll('tbody tr').forEach(tr => {
+    tr.addEventListener('click', () => {
+      const index = Number(tr.getAttribute('data-index'));
+      const row = rows[index];
+      state.selected = { dungeon: state.active, index, row };
+      render();
+      renderVideo();
+    });
+  });
 
   renderTabs();
 }
 
-function play(url,player){
-  videoTitle.textContent=player;
-  videoArea.innerHTML=`<iframe class="video-frame" src="${yt(url)}" allowfullscreen></iframe>`;
+function renderVideo() {
+  if (!state.selected || !state.selected.row) {
+    videoTitle.textContent = 'Select a run';
+    videoSubtitle.textContent = 'Choose any leaderboard row to embed the video here.';
+    videoArea.className = 'placeholder';
+    videoArea.innerHTML = 'No video selected';
+    return;
+  }
+
+  const row = state.selected.row;
+  const embed = yt(row['Speedrun video:']);
+  const character = normalizeCharacterName(row.Character);
+
+  videoTitle.textContent = `${row.Player} • ${character}`;
+  videoSubtitle.textContent = `${state.selected.dungeon} • ${row.Time} • ${row['Post date (dd/mm/yyyy)'] || ''}`;
+
+  if (!embed) {
+    videoArea.className = 'placeholder';
+    videoArea.innerHTML = 'Invalid or missing YouTube link';
+    return;
+  }
+
+  videoArea.className = '';
+  videoArea.innerHTML = `<iframe class="video-frame" src="${escapeHtml(embed)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
 }
 
-async function load(){
-  for(let d in DUNGEONS){
-    let r=await fetch(DUNGEONS[d]);
-    let t=await r.text();
-    state.data[d]=parseTSV(t)
-      .filter(x=>x.Player)
-      .sort((a,b)=>seconds(a.Time)-seconds(b.Time));
+async function load() {
+  for (const d in DUNGEONS) {
+    try {
+      const r = await fetch(DUNGEONS[d], { cache: 'no-store' });
+      const t = await r.text();
+      state.data[d] = parseTSV(t)
+        .filter(x => x.Player && x.Time)
+        .sort((a, b) => seconds(a.Time) - seconds(b.Time));
+    } catch (e) {
+      state.data[d] = [];
+    }
   }
   render();
+  renderVideo();
 }
 
 load();
