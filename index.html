@@ -18,9 +18,6 @@
       --gold: #ffd700;
       --silver: #c0c0c0;
       --bronze: #cd7f32;
-      --badge: rgba(255,255,255,0.08);
-      --wr: #ffcc4d;
-      --record: #7ee787;
     }
 
     * { box-sizing: border-box; }
@@ -55,7 +52,7 @@
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(760px, 1.25fr) minmax(560px, 1fr);
+      grid-template-columns: minmax(700px, 1.15fr) minmax(620px, 1fr);
       gap: 20px;
       align-items: start;
     }
@@ -154,22 +151,20 @@
 
     .table-wrap {
       padding: 0 12px 12px;
-      overflow-x: auto;
+      overflow-x: hidden;
     }
 
     table {
       width: 100%;
-      min-width: 980px;
       border-collapse: collapse;
       table-layout: fixed;
     }
 
-    col.col-pos { width: 90px; }
-    col.col-character { width: 320px; }
-    col.col-player { width: 220px; }
-    col.col-time { width: 130px; }
-    col.col-date { width: 160px; }
-    col.col-badges { width: 180px; }
+    col.col-pos { width: 72px; }
+    col.col-character { width: 38%; }
+    col.col-player { width: 24%; }
+    col.col-time { width: 14%; }
+    col.col-date { width: 18%; }
 
     th, td {
       padding: 12px;
@@ -243,37 +238,6 @@
       font-weight: 700;
     }
 
-    .badges {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      white-space: normal;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      padding: 4px 8px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.03em;
-      background: var(--badge);
-      border: 1px solid rgba(255,255,255,0.10);
-    }
-
-    .badge.wr {
-      background: rgba(255, 204, 77, 0.12);
-      border-color: rgba(255, 204, 77, 0.28);
-      color: var(--wr);
-    }
-
-    .badge.record {
-      background: rgba(126, 231, 135, 0.12);
-      border-color: rgba(126, 231, 135, 0.28);
-      color: var(--record);
-    }
-
     .video-header-title {
       font-size: 22px;
       font-weight: 700;
@@ -293,7 +257,7 @@
     .video-frame {
       width: 100%;
       aspect-ratio: 16 / 9;
-      min-height: 420px;
+      min-height: 460px;
       border: 0;
       background: black;
       display: block;
@@ -397,7 +361,7 @@ const DUNGEONS = {
 };
 
 let state = {
-  active: Object.keys(DUNGEONS)[0],
+  active: "Void Invasion",
   data: {},
   selected: null,
   characterFilter: ""
@@ -463,7 +427,6 @@ function parseSheetData(text) {
 
   if (!lines.length) return [];
 
-  // 🔥 find the actual header row (starts with Position)
   const headerIndex = lines.findIndex(line =>
     line.toLowerCase().includes("position") &&
     line.toLowerCase().includes("character")
@@ -525,18 +488,6 @@ function positionValue(position) {
 }
 
 function enrichRows(rows) {
-  const characterBest = {};
-  let overallBest = Number.POSITIVE_INFINITY;
-
-  rows.forEach(row => {
-    const charName = normalizeCharacterName(row.Character);
-    const timeSeconds = seconds(row.Time);
-    if (timeSeconds < overallBest) overallBest = timeSeconds;
-    if (!(charName in characterBest) || timeSeconds < characterBest[charName]) {
-      characterBest[charName] = timeSeconds;
-    }
-  });
-
   return rows
     .map(row => {
       const cleanCharacter = normalizeCharacterName(row.Character);
@@ -545,9 +496,7 @@ function enrichRows(rows) {
         ...row,
         cleanCharacter,
         iconFile: iconFileFromCharacter(row.Character),
-        timeSeconds,
-        isWorldRecord: timeSeconds === overallBest,
-        isCharacterRecord: timeSeconds === characterBest[cleanCharacter]
+        timeSeconds
       };
     })
     .sort((a, b) => {
@@ -598,10 +547,15 @@ function renderTabs() {
     const el = document.createElement("div");
     el.className = "tab " + (state.active === d ? "active" : "");
     el.textContent = d;
-    el.onclick = () => {
+    el.onclick = async () => {
       state.active = d;
       state.selected = null;
       state.characterFilter = "";
+
+      if (!state.data[d]) {
+        await loadDungeon(d);
+      }
+
       render();
       renderVideo();
     };
@@ -633,7 +587,6 @@ function render() {
           <col class="col-player">
           <col class="col-time">
           <col class="col-date">
-          <col class="col-badges">
         </colgroup>
         <thead>
           <tr>
@@ -642,7 +595,6 @@ function render() {
             <th>Player</th>
             <th>Time</th>
             <th>Date</th>
-            <th>Badges</th>
           </tr>
         </thead>
         <tbody>
@@ -663,10 +615,6 @@ function render() {
                 ? "rank rank-3"
                 : "rank";
 
-            const badges = [];
-            if (r.isWorldRecord) badges.push('<span class="badge wr">WR</span>');
-            if (r.isCharacterRecord) badges.push('<span class="badge record">Character Record</span>');
-
             return `
               <tr class="${activeClass}" data-row-key="${escapeHtml(makeRowKey(r))}">
                 <td class="${rankClass}">${escapeHtml(r.Position)}</td>
@@ -684,7 +632,6 @@ function render() {
                 <td><span class="player-name">${escapeHtml(r.Player)}</span></td>
                 <td>${escapeHtml(r.Time)}</td>
                 <td>${escapeHtml(r["Post date (dd/mm/yyyy)"] || "")}</td>
-                <td><div class="badges">${badges.join("")}</div></td>
               </tr>
             `;
           }).join("")}
@@ -722,10 +669,6 @@ function renderVideo() {
   videoTitleEl.textContent = `${row.Player} • ${row.cleanCharacter}`;
   videoSubtitleEl.textContent = `${state.selected.dungeon} • ${row.Time} • ${row["Post date (dd/mm/yyyy)"] || ""}`;
 
-  const badges = [];
-  if (row.isWorldRecord) badges.push("WR");
-  if (row.isCharacterRecord) badges.push("Character Record");
-
   if (!embed) {
     videoAreaEl.className = "placeholder";
     videoAreaEl.innerHTML = "Invalid or missing YouTube link";
@@ -749,7 +692,6 @@ function renderVideo() {
     Player: <strong>${escapeHtml(row.Player)}</strong><br>
     Character: <strong>${escapeHtml(row.cleanCharacter)}</strong><br>
     Position: <strong>${escapeHtml(row.Position)}</strong><br>
-    ${badges.length ? `Badges: <strong>${escapeHtml(badges.join(" • "))}</strong><br>` : ""}
     <a href="${escapeHtml(row["Speedrun video:"])}" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
   `;
 }
@@ -767,31 +709,32 @@ characterFilterEl.addEventListener("change", () => {
   renderVideo();
 });
 
-async function load() {
-  for (const dungeon in DUNGEONS) {
-    try {
-      const response = await fetch(DUNGEONS[dungeon], { cache: "no-store" });
-      if (!response.ok) {
-        state.data[dungeon] = [];
-        continue;
-      }
-
-      const text = await response.text();
-
-      state.data[dungeon] = enrichRows(
-        parseSheetData(text).filter(row =>
-          row.Player &&
-          row.Time &&
-          row.Character &&
-          row.Position &&
-          row["Speedrun video:"]
-        )
-      );
-    } catch (e) {
+async function loadDungeon(dungeon) {
+  try {
+    const response = await fetch(DUNGEONS[dungeon], { cache: "no-store" });
+    if (!response.ok) {
       state.data[dungeon] = [];
+      return;
     }
-  }
 
+    const text = await response.text();
+
+    state.data[dungeon] = enrichRows(
+      parseSheetData(text).filter(row =>
+        row.Player &&
+        row.Time &&
+        row.Character &&
+        row.Position &&
+        row["Speedrun video:"]
+      )
+    );
+  } catch (e) {
+    state.data[dungeon] = [];
+  }
+}
+
+async function load() {
+  await loadDungeon(state.active);
   lastRefreshText = `updated ${new Date().toLocaleString()}`;
   render();
   renderVideo();
