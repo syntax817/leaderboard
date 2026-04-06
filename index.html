@@ -868,56 +868,62 @@ function buildDungeonTierData(dungeon) {
 
 function buildOverallTierData() {
   const byCharacter = new Map();
+  const totalDungeons = dungeonOrder.length;
 
-  dungeonOrder.forEach(d => {
-    const rows = state.data[d] || [];
+  dungeonOrder.forEach(dungeon => {
+    const rows = state.data[dungeon] || [];
     if (!rows.length) return;
 
-    const best = rows[0].sec;
-    const worst = Math.max(...rows.map(r => r.sec));
-    const range = Math.max(worst - best, 1);
+    const fieldSize = rows.length;
+    const denom = Math.max(fieldSize - 1, 1);
 
-    rows.forEach(r => {
-      const score = 1 - ((r.sec - best) / range);
-      if (!byCharacter.has(r.char)) {
-        byCharacter.set(r.char, {
-          char:r.char,
-          iconFile:r.iconFile,
-          total:0,
-          count:0,
-          bestScore:-1,
-          bestRow:r,
-          bestDungeon:d,
-          dungeonRanks:{}
+    rows.forEach(row => {
+      const rank = parseInt(row.Position, 10);
+      if (!Number.isFinite(rank)) return;
+
+      const score = 1 - ((rank - 1) / denom);
+
+      if (!byCharacter.has(row.char)) {
+        byCharacter.set(row.char, {
+          char: row.char,
+          iconFile: row.iconFile,
+          total: 0,
+          count: 0,
+          bestScore: -1,
+          bestRow: row,
+          bestDungeon: dungeon,
+          dungeonRanks: {}
         });
       }
-      const item = byCharacter.get(r.char);
+
+      const item = byCharacter.get(row.char);
       item.total += score;
       item.count += 1;
-      item.dungeonRanks[d] = r.Position;
+      item.dungeonRanks[dungeon] = row.Position;
+
       if (score > item.bestScore) {
         item.bestScore = score;
-        item.bestRow = r;
-        item.bestDungeon = d;
+        item.bestRow = row;
+        item.bestDungeon = dungeon;
       }
     });
   });
 
   const groups = Object.fromEntries(TIER_ORDER.map(t => [t, []]));
-  byCharacter.forEach(item => {
-    const avg = item.total / item.count;
-    const tier = tierFromScore(avg);
-    groups[tier].push({ ...item, score:avg });
-  });
-  return groups;
-}
 
-function shortDungeonName(d) {
-  if (d === "Void Invasion") return "V1";
-  if (d === "Void Taint") return "V2";
-  if (d === "Void Nightmare") return "V3";
-  if (d === "Tower of Disappearance") return "ToD";
-  return d;
+  byCharacter.forEach(item => {
+    const averageScore = item.total / item.count;
+    const completionMultiplier = item.count / totalDungeons;
+    const finalScore = averageScore * completionMultiplier;
+    const tier = tierFromScore(finalScore);
+
+    groups[tier].push({
+      ...item,
+      score: finalScore
+    });
+  });
+
+  return groups;
 }
 
 function renderTierGroups(groups, overall = false) {
@@ -1001,7 +1007,7 @@ function bindTierClicks() {
 
 function renderTierView() {
   titleEl.textContent = "Tier Lists";
-  headerMetaEl.textContent = `Based on how close clear times are to first place${lastRefreshText ? ` • ${lastRefreshText}` : ""}`;
+  headerMetaEl.textContent = `Overall tiers use rank-based scoring with a missing-run penalty. Per-dungeon tiers still use time proximity to first place, and characters with no run go into N/A.${lastRefreshText ? ` • ${lastRefreshText}` : ""}`;
 
   const tierTabs = ["Overall", ...dungeonOrder];
   const activeTier = state.tierActive || "Overall";
@@ -1015,7 +1021,6 @@ function renderTierView() {
 
   contentAreaEl.innerHTML = `
     <div class="tier-wrap">
-      <div class="tier-note">Overall tiers use only the dungeons a character has runs in. Per-dungeon tiers place characters with no run into N/A.</div>
       <div class="tabs">
         ${tierTabs.map(t => `
           <button type="button" class="tab ${activeTier === t ? "active" : ""}" data-tier-tab="${escapeHtml(t)}">${escapeHtml(t)}</button>
