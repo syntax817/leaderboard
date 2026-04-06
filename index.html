@@ -876,23 +876,48 @@ function renderTierGroups(groups, overall = false) {
   return TIER_ORDER.map(tier => {
     const cls = tier === "N/A" ? "NA" : tier;
     const items = groups[tier] || [];
+
     return `
       <div class="tier-group">
         <div class="tier-header">
           <div class="tier-label tier-${cls}">${tier}</div>
           <div class="tier-cards">
-            ${items.length ? items.map(item => `
-              <div class="tier-card" data-char="${escapeHtml(item.char)}" data-dungeon="${escapeHtml(overall ? item.bestDungeon : (item.dungeon || ""))}">
-                <div class="tier-card-main">
-                  <img class="tier-icon" src="${escapeHtml(item.iconFile)}" alt="${escapeHtml(item.char)}" onerror="this.style.display='none'">
-                  <div class="tier-card-text">
-                    <div class="tier-card-name">${escapeHtml(item.char)}</div>
-                    <div class="tier-card-sub">${overall ? `Best run: ${escapeHtml(item.bestRow.Time)}` : (item.Time ? escapeHtml(item.Time) : "No run")}</div>
+            ${items.length ? items.map(item => {
+              // OVERALL: show ranks per dungeon
+              let subText = "";
+
+              if (tier === "N/A") {
+                subText = "No run";
+              } else if (overall) {
+                const ranks = dungeonOrder.map(d => {
+                  const row = (state.data[d] || []).find(r => r.char === item.char);
+                  return row ? `${d.split(" ")[1] || d}: #${row.Position}` : `${d.split(" ")[1] || d}: -`;
+                }).join(" | ");
+
+                subText = ranks;
+              } else {
+                subText = item.Time || "";
+              }
+
+              return `
+                <div class="tier-card" data-char="${escapeHtml(item.char)}" data-dungeon="${escapeHtml(overall ? item.bestDungeon : (item.dungeon || ""))}">
+                  <div class="tier-card-main">
+                    <img class="tier-icon" src="${escapeHtml(item.iconFile)}" alt="${escapeHtml(item.char)}" onerror="this.style.display='none'">
+                    <div class="tier-card-text">
+                      <div class="tier-card-name">${escapeHtml(item.char)}</div>
+                      <div class="tier-card-sub">${escapeHtml(subText)}</div>
+                    </div>
                   </div>
+                  <div class="tier-card-score">${tier === "N/A" ? "No tracked run" : (overall ? `Score ${(item.score * 100).toFixed(1)}` : `Score ${(item.score * 100).toFixed(1)}`)}</div>
                 </div>
-                <div class="tier-card-score">${tier === "N/A" ? "No tracked run" : `Score ${(item.score * 100).toFixed(1)}`}</div>
-              </div>
-            `).join("") : `<div class="tier-note">No characters in this tier.</div>`}
+              `;
+            }).join("") : `<div class="tier-note">No characters in this tier.</div>`}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
           </div>
         </div>
       </div>
