@@ -1,1246 +1,1379 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Speedrun Leaderboards</title>
-  <link rel="icon" type="image/webp" href="logo.webp">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grand Chase Leaderboards</title>
+  <link rel="icon" type="image/webp" href="logo.webp" />
 
   <style>
     :root {
-      --red:#ff3b3b;
-      --orange:#ff7a18;
-      --purple:#7c3aed;
-      --panel:rgba(20,20,30,.9);
-      --border:rgba(255,255,255,.12);
-      --text:#fff;
-      --muted:#b6bfd3;
-      --gold:#ffd700;
-      --silver:#c0c0c0;
-      --bronze:#cd7f32;
-      --ss:#ffdf5d;
-      --s:#ff9d3d;
-      --a:#c96cff;
-      --b:#5fa9ff;
-      --c:#58d68d;
-      --d:#c7d36f;
-      --f:#9aa6c0;
-      --na:#707784;
+      --red: #ff3b3b;
+      --orange: #ff7a18;
+      --purple: #7c3aed;
+      --panel: rgba(10, 15, 30, 0.86);
+      --border: rgba(255,255,255,0.15);
+      --text: #f5f7ff;
+      --muted: #9aa6c0;
+      --gold: #ffd700;
+      --silver: #c0c0c0;
+      --bronze: #cd7f32;
+      --ss: #ffdf5d;
+      --s: #ff9d3d;
+      --a: #c96cff;
+      --b: #5fa9ff;
+      --c: #58d68d;
+      --d: #c7d36f;
+      --f: #9aa6c0;
+      --na: #707784;
     }
 
-    * { box-sizing:border-box; }
+    * { box-sizing: border-box; }
 
     body {
-      margin:0;
-      font-family:Arial, Helvetica, sans-serif;
-      color:var(--text);
+      margin: 0;
+      font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+      color: var(--text);
       background:
-        linear-gradient(rgba(0,0,0,.8),rgba(0,0,0,.9)),
-        url('background.jpg') center/cover no-repeat fixed;
+        linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)),
+        url('background.jpg') center / cover no-repeat fixed;
     }
 
     .container {
-      max-width:1450px;
-      margin:auto;
-      padding:20px;
+      width: min(1450px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
     }
 
     h1 {
-      margin:0 0 10px;
-      font-family:"Impact","Arial Black",sans-serif;
-      font-size:48px;
-      letter-spacing:.05em;
-      text-transform:uppercase;
-      background:linear-gradient(90deg,var(--red),var(--orange));
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
+      margin: 0 0 10px;
+      font-family: "Impact", "Arial Black", sans-serif;
+      font-size: 48px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, var(--red), var(--orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
       text-shadow:
-        0 0 10px rgba(255,122,24,.35),
-        0 0 24px rgba(255,59,59,.22),
-        2px 2px 0 rgba(0,0,0,.35);
+        0 0 10px rgba(255, 122, 24, 0.35),
+        0 0 24px rgba(255, 59, 59, 0.22),
+        2px 2px 0 rgba(0,0,0,0.35);
     }
 
     .subtitle {
-      color:var(--muted);
-      margin-bottom:16px;
+      color: var(--muted);
+      margin-bottom: 16px;
     }
 
-    .view-tabs, .tabs {
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
+    .view-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
     }
 
-    .view-tabs { margin-bottom:18px; }
-    .tabs { padding:10px 16px; }
-
-    .view-tab, .tab {
-      padding:10px 15px;
-      border-radius:20px;
-      border:1px solid rgba(255,255,255,.18);
-      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
-      color:#fff;
-      cursor:pointer;
-      font-weight:700;
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.10), 0 0 0 rgba(0,0,0,0);
-      transition:.15s ease;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+    .view-tab,
+    .tab {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 0 0 rgba(0,0,0,0);
+      cursor: pointer;
+      font-weight: bold;
+      color: var(--text);
+      transition: 0.15s ease;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .view-tab:hover, .tab:hover {
-      transform:translateY(-1px) scale(1.02);
-      border-color:rgba(255,255,255,.32);
-      box-shadow:inset 0 0 12px rgba(255,255,255,.06), 0 0 18px rgba(124,58,237,.18);
+    .view-tab:hover,
+    .tab:hover {
+      transform: translateY(-1px) scale(1.02);
+      border-color: rgba(255,255,255,0.32);
+      box-shadow: inset 0 0 12px rgba(255,255,255,0.06), 0 0 18px rgba(124, 58, 237, 0.18);
     }
 
-    .view-tab.active, .tab.active {
-      background:linear-gradient(135deg,var(--red),var(--purple));
-      border:1px solid rgba(255,255,255,.18);
-      box-shadow:inset 0 0 14px rgba(255,255,255,.08), 0 0 20px rgba(255,122,24,.22);
+    .view-tab.active,
+    .tab.active {
+      background: linear-gradient(135deg, var(--red), var(--purple));
+      color: #ffffff;
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: inset 0 0 14px rgba(255,255,255,0.08), 0 0 20px rgba(255, 122, 24, 0.22);
     }
-
-    .tab-spinner {
-      width:12px;
-      height:12px;
-      border:2px solid rgba(255,255,255,.3);
-      border-top-color:#fff;
-      border-radius:50%;
-      animation:spin .8s linear infinite;
-      display:none;
-    }
-
-    .tab.loading .tab-spinner { display:inline-block; }
 
     .layout {
-      display:grid;
-      grid-template-columns:2fr 1fr;
-      gap:20px;
+      display: grid;
+      grid-template-columns: minmax(760px, 1.22fr) minmax(500px, 0.9fr);
+      gap: 18px;
+      align-items: start;
     }
 
-    .panel {
-      background:var(--panel);
-      border-radius:16px;
-      border:1px solid var(--border);
-      overflow:hidden;
-      box-shadow:0 16px 40px rgba(0,0,0,.28);
-      backdrop-filter:blur(6px);
+    .panel,
+    .video-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      backdrop-filter: blur(6px);
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.28);
     }
 
-    .panel-header {
-      padding:16px;
-      border-bottom:1px solid var(--border);
+    .panel-header,
+    .video-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
     }
 
     .header-title {
-      font-size:24px;
-      font-weight:700;
+      font-size: 24px;
+      font-weight: 700;
     }
 
     .header-meta {
-      color:var(--muted);
-      font-size:14px;
-      margin-top:4px;
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 4px;
     }
 
     .top-three {
-      display:grid;
-      grid-template-columns:repeat(3, minmax(0, 1fr));
-      gap:10px;
-      padding:14px 16px 4px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      padding: 14px 16px 4px;
     }
 
     .top-card {
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:14px;
-      padding:12px;
-      background:rgba(255,255,255,.04);
-      min-width:0;
-      cursor:pointer;
-      transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(255,255,255,0.04);
+      min-width: 0;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
     }
 
     .top-card.first {
-      background:linear-gradient(135deg, rgba(255,215,0,.18), rgba(255,122,24,.12));
-      border-color:rgba(255,215,0,.3);
+      background: linear-gradient(135deg, rgba(255,215,0,0.18), rgba(255,122,24,0.12));
+      border-color: rgba(255,215,0,0.3);
     }
+
     .top-card.second {
-      background:linear-gradient(135deg, rgba(192,192,192,.14), rgba(124,58,237,.10));
-      border-color:rgba(192,192,192,.25);
+      background: linear-gradient(135deg, rgba(192,192,192,0.14), rgba(124,58,237,0.10));
+      border-color: rgba(192,192,192,0.25);
     }
+
     .top-card.third {
-      background:linear-gradient(135deg, rgba(205,127,50,.18), rgba(255,59,59,.10));
-      border-color:rgba(205,127,50,.25);
+      background: linear-gradient(135deg, rgba(205,127,50,0.18), rgba(255,59,59,0.10));
+      border-color: rgba(205,127,50,0.25);
     }
+
     .top-card:hover {
-      transform:translateY(-2px) scale(1.01);
-      box-shadow:0 0 18px rgba(255,122,24,.16);
-      border-color:rgba(255,255,255,.24);
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 0 18px rgba(255, 122, 24, 0.16);
+      border-color: rgba(255,255,255,0.24);
     }
 
     .top-rank {
-      font-size:12px;
-      font-weight:800;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      color:var(--muted);
-      margin-bottom:8px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
     }
 
-    .top-main, .character-cell, .tier-card-main, .video-card-main {
-      display:flex;
-      align-items:center;
-      gap:10px;
-      min-width:0;
+    .top-main,
+    .character-cell,
+    .video-card-main,
+    .tier-card-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
     }
 
-    .top-icon, .character-icon, .tier-icon, .video-card-icon {
-      object-fit:cover;
-      flex:0 0 auto;
-      border:1px solid rgba(255,255,255,.16);
-      background:rgba(255,255,255,.06);
+    .top-icon,
+    .character-icon,
+    .video-card-icon,
+    .tier-icon {
+      object-fit: cover;
+      flex: 0 0 auto;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.06);
     }
 
-    .top-icon { width:36px; height:36px; border-radius:10px; }
-    .character-icon { width:30px; height:30px; border-radius:8px; }
-    .tier-icon { width:34px; height:34px; border-radius:10px; }
-    .video-card-icon { width:48px; height:48px; border-radius:12px; }
-
-    .top-character, .character-name, .tier-card-name, .video-card-text {
-      font-weight:700;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
+    .top-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
     }
 
-    .top-character { font-weight:800; }
+    .character-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+    }
 
-    .top-player, .player-name, .tier-card-sub, .video-card-player {
-      color:var(--orange);
-      font-size:14px;
-      font-weight:700;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
+    .video-card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+    }
+
+    .tier-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+    }
+
+    .top-name-wrap,
+    .tier-card-text {
+      min-width: 0;
+    }
+
+    .top-character,
+    .character-name,
+    .video-card-text,
+    .tier-card-name {
+      font-weight: 700;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .top-character {
+      font-weight: 800;
+    }
+
+    .top-player,
+    .player-name,
+    .video-card-player,
+    .tier-card-sub {
+      color: var(--orange);
+      font-weight: 700;
+      font-size: 14px;
     }
 
     .top-time {
-      margin-top:8px;
-      font-size:18px;
-      font-weight:800;
+      margin-top: 8px;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      padding: 10px 16px;
+      flex-wrap: wrap;
+    }
+
+    .tab-spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    .tab.loading .tab-spinner {
+      display: inline-block;
     }
 
     .table-wrap {
-      padding:0 12px 12px;
-      overflow-x:hidden;
+      padding: 0 12px 12px;
+      overflow-x: hidden;
     }
 
     table {
-      width:100%;
-      border-collapse:collapse;
-      table-layout:fixed;
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
     }
 
-    col.col-pos { width:72px; }
-    col.col-character { width:34%; }
-    col.col-player { width:22%; }
-    col.col-time { width:14%; }
-    col.col-date { width:14%; }
-    col.col-gap { width:16%; }
+    col.col-pos { width: 72px; }
+    col.col-character { width: 34%; }
+    col.col-player { width: 22%; }
+    col.col-time { width: 14%; }
+    col.col-date { width: 14%; }
+    col.col-gap { width: 16%; }
 
     th, td {
-      padding:12px;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      vertical-align:middle;
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      vertical-align: middle;
     }
 
     th {
-      font-size:12px;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      text-align:left;
-      white-space:nowrap;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-align: left;
+      white-space: nowrap;
     }
 
     td {
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     tbody tr {
-      cursor:pointer;
-      transition:background .15s ease;
+      cursor: pointer;
+      transition: background 0.15s ease;
     }
 
-    tbody tr:hover td { background:#333; }
+    tbody tr:hover td {
+      background: rgba(255,255,255,0.06);
+    }
 
     tbody tr.active-row td {
-      background:rgba(124,58,237,.18);
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.03), inset 0 -1px 0 rgba(255,255,255,.03);
+      background: rgba(124, 58, 237, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), inset 0 -1px 0 rgba(255,255,255,0.03);
     }
 
-    .rank { font-weight:800; }
-    .rank.rank-1 { color:var(--gold); }
-    .rank.rank-2 { color:var(--silver); }
-    .rank.rank-3 { color:var(--bronze); }
+    .rank {
+      font-weight: 800;
+    }
 
-    .delta.good { color:#58d68d; font-weight:700; }
-    .delta.neutral { color:var(--muted); }
+    .rank.rank-1 { color: var(--gold); }
+    .rank.rank-2 { color: var(--silver); }
+    .rank.rank-3 { color: var(--bronze); }
+
+    .delta.good { color: #58d68d; font-weight: 700; }
+    .delta.neutral { color: var(--muted); }
 
     .video-header-title {
-      font-size:22px;
-      font-weight:700;
-      margin-bottom:6px;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
     }
+
     .video-subtitle {
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.4;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
     }
+
     .video-card {
-      padding:14px 16px 0;
+      padding: 14px 16px 0;
     }
+
     .video-card-sub {
-      color:var(--muted);
-      font-size:14px;
-      margin-top:6px;
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 6px;
     }
-    .video-frame-wrap { padding:16px; }
+
+    .video-frame-wrap {
+      padding: 16px;
+    }
+
     .video-frame {
-      width:100%;
-      aspect-ratio:16 / 9;
-      min-height:400px;
-      border:0;
-      background:black;
-      display:block;
-      border-radius:12px;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      min-height: 400px;
+      border: 0;
+      background: black;
+      display: block;
+      border-radius: 12px;
     }
+
     .video-actions {
-      display:flex;
-      gap:10px;
-      padding:0 16px 14px;
-      flex-wrap:wrap;
+      display: flex;
+      gap: 10px;
+      padding: 0 16px 14px;
+      flex-wrap: wrap;
     }
+
     .action-btn {
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.05);
-      color:var(--text);
-      border-radius:10px;
-      padding:9px 12px;
-      font-weight:700;
-      text-decoration:none;
-      cursor:pointer;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
     }
-    .action-btn:hover { background:rgba(255,255,255,.09); }
+
+    .action-btn:hover {
+      background: rgba(255,255,255,0.09);
+    }
+
     .video-extra {
-      padding:0 16px 18px;
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.5;
+      padding: 0 16px 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
     }
 
     .multi-video-wrap {
-      padding:16px;
-      display:grid;
-      gap:18px;
+      padding: 16px;
+      display: grid;
+      gap: 18px;
     }
 
     .multi-video-block {
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:12px;
-      padding:12px;
-      background:rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
     }
 
     .multi-video-block h3 {
-      margin:0 0 8px;
-      font-size:18px;
+      margin: 0 0 8px;
+      font-size: 18px;
     }
 
     .multi-video-meta {
-      color:var(--muted);
-      font-size:13px;
-      margin-bottom:10px;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 10px;
     }
 
     .multi-video-frame {
-      width:100%;
-      aspect-ratio:16 / 9;
-      border:0;
-      border-radius:10px;
-      background:black;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: 0;
+      border-radius: 10px;
+      background: black;
     }
 
     .multi-video-empty {
-      color:var(--muted);
-      padding:14px 0;
+      color: var(--muted);
+      padding: 14px 0;
     }
 
-    .tier-wrap { padding:14px 16px 18px; }
-    .tier-note { color:var(--muted); font-size:14px; line-height:1.5; margin-bottom:10px; }
+    .tier-wrap {
+      padding: 14px 16px 18px;
+    }
+
+    .tier-note {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
     .tier-group {
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:16px;
-      overflow:hidden;
-      margin-bottom:14px;
-      background:rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      background: rgba(255,255,255,0.03);
     }
+
     .tier-header {
-      display:grid;
-      grid-template-columns:94px 1fr;
-      min-height:72px;
+      display: grid;
+      grid-template-columns: 94px 1fr;
+      min-height: 72px;
     }
+
     .tier-label {
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:34px;
-      font-weight:900;
-      letter-spacing:.04em;
-      color:#0b1020;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: #0b1020;
     }
-    .tier-SS { background:var(--ss); }
-    .tier-S { background:var(--s); }
-    .tier-A { background:var(--a); }
-    .tier-B { background:var(--b); }
-    .tier-C { background:var(--c); }
-    .tier-D { background:var(--d); }
-    .tier-F { background:var(--f); }
-    .tier-NA { background:var(--na); }
+
+    .tier-SS { background: var(--ss); }
+    .tier-S { background: var(--s); }
+    .tier-A { background: var(--a); }
+    .tier-B { background: var(--b); }
+    .tier-C { background: var(--c); }
+    .tier-D { background: var(--d); }
+    .tier-F { background: var(--f); }
+    .tier-NA { background: var(--na); }
 
     .tier-cards {
-      display:grid;
-      grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
-      gap:10px;
-      padding:12px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      padding: 12px;
     }
+
     .tier-card {
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:12px;
-      background:rgba(255,255,255,.04);
-      padding:10px;
-      cursor:pointer;
-      transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      padding: 10px;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     }
+
     .tier-card:hover {
-      transform:translateY(-1px);
-      border-color:rgba(255,255,255,.22);
-      box-shadow:0 0 14px rgba(124,58,237,.16);
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.22);
+      box-shadow: 0 0 14px rgba(124,58,237,0.16);
     }
+
     .tier-card-score {
-      color:var(--muted);
-      font-size:12px;
-      margin-top:6px;
-      white-space:normal;
-      line-height:1.4;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
+      white-space: normal;
+      line-height: 1.4;
     }
 
     .rank-grid {
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:4px 12px;
-      margin-top:2px;
-      color:var(--orange);
-      font-size:13px;
-      font-weight:700;
-      line-height:1.35;
-      white-space:normal;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 12px;
+      margin-top: 2px;
+      color: var(--orange);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+      white-space: normal;
     }
 
     .rank-grid span {
-      white-space:nowrap;
+      white-space: nowrap;
     }
 
-    .loading-shell { padding:12px 12px 18px; }
+    .loading-shell {
+      padding: 12px 12px 18px;
+    }
+
     .skeleton-row {
-      display:grid;
-      grid-template-columns:72px 34% 22% 14% 14% 16%;
-      gap:12px;
-      padding:12px;
-      border-bottom:1px solid rgba(255,255,255,.08);
+      display: grid;
+      grid-template-columns: 72px 34% 22% 14% 14% 16%;
+      gap: 12px;
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
     }
-    .skeleton-block, .video-skeleton {
-      border-radius:999px;
-      background:linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.14), rgba(255,255,255,.06));
-      background-size:200% 100%;
-      animation:shimmer 1.2s linear infinite;
-    }
-    .skeleton-block { height:18px; }
-    .video-loading { padding:16px; }
+
+    .skeleton-block,
     .video-skeleton {
-      width:100%;
-      aspect-ratio:16 / 9;
-      min-height:400px;
-      border-radius:12px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.14), rgba(255,255,255,0.06));
+      background-size: 200% 100%;
+      animation: shimmer 1.2s linear infinite;
     }
-    .empty, .placeholder { color:var(--muted); }
+
+    .skeleton-block {
+      height: 18px;
+    }
+
+    .video-loading {
+      padding: 16px;
+    }
+
+    .video-skeleton {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      min-height: 400px;
+      border-radius: 12px;
+    }
+
+    .empty,
     .placeholder {
-      padding:48px 24px;
-      min-height:440px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
+      color: var(--muted);
     }
-    .empty { padding:18px 16px 22px; }
+
+    .placeholder {
+      padding: 48px 24px;
+      min-height: 440px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .empty {
+      padding: 18px 16px 22px;
+    }
 
     @keyframes shimmer {
-      0% { background-position:200% 0; }
-      100% { background-position:-200% 0; }
-    }
-    @keyframes spin {
-      from { transform:rotate(0deg); }
-      to { transform:rotate(360deg); }
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
 
-    @media (max-width:1200px) {
-      .layout { grid-template-columns:1fr; }
-      .top-three { grid-template-columns:1fr; }
-      .video-frame, .video-skeleton, .multi-video-frame { min-height:360px; }
-      .placeholder { min-height:260px; }
-      .tier-header { grid-template-columns:84px 1fr; }
-      col.col-gap { width:18%; }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 1200px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .top-three {
+        grid-template-columns: 1fr;
+      }
+
+      .video-frame,
+      .video-skeleton,
+      .multi-video-frame {
+        min-height: 360px;
+      }
+
+      .placeholder {
+        min-height: 260px;
+      }
+
+      .tier-header {
+        grid-template-columns: 84px 1fr;
+      }
+
+      col.col-gap { width: 18%; }
     }
   </style>
 </head>
 <body>
-<div class="container">
-  <h1>Grand Chase Leaderboards</h1>
-  <div class="subtitle">Speedrun rankings • Click any row or tier card to watch the run</div>
+  <div class="container">
+    <h1>Grand Chase Leaderboards</h1>
+    <div class="subtitle">Speedrun rankings • Click any row or tier card to watch the run</div>
 
-  <div class="view-tabs">
-    <button type="button" class="view-tab active" id="viewLeaderboard">Leaderboard</button>
-    <button type="button" class="view-tab" id="viewTier">Tier List</button>
-  </div>
-
-  <div class="layout">
-    <div class="panel">
-      <div class="panel-header">
-        <div class="header-title" id="title"></div>
-        <div class="header-meta" id="headerMeta"></div>
-      </div>
-      <div id="contentArea"></div>
+    <div class="view-tabs">
+      <button type="button" class="view-tab active" id="viewLeaderboard">Leaderboard</button>
+      <button type="button" class="view-tab" id="viewTier">Tier List</button>
     </div>
 
-    <div class="panel">
-      <div class="panel-header">
-        <div class="video-header-title" id="videoTitle">Select a run</div>
-        <div class="video-subtitle" id="videoSubtitle">Choose any leaderboard row or tier card to embed the video here.</div>
+    <div class="layout">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="header-title" id="title"></div>
+          <div class="header-meta" id="headerMeta"></div>
+        </div>
+        <div id="contentArea"></div>
       </div>
-      <div id="videoCard"></div>
-      <div id="videoArea" class="placeholder">No video selected</div>
-      <div class="video-actions" id="videoActions" style="display:none;">
-        <a class="action-btn" id="youtubeButton" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
-        <button class="action-btn" id="copyButton" type="button">Copy video link</button>
+
+      <div class="video-panel">
+        <div class="video-header">
+          <div class="video-header-title" id="videoTitle">Select a run</div>
+          <div class="video-subtitle" id="videoSubtitle">Choose any leaderboard row or tier card to embed the video here.</div>
+        </div>
+        <div id="videoCard"></div>
+        <div id="videoArea" class="placeholder">No video selected</div>
+        <div class="video-actions" id="videoActions" style="display:none;">
+          <a class="action-btn" id="youtubeButton" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
+          <button class="action-btn" id="copyButton" type="button">Copy video link</button>
+        </div>
+        <div class="video-extra" id="videoExtra"></div>
       </div>
-      <div class="video-extra" id="videoExtra"></div>
     </div>
   </div>
-</div>
 
-<script>
-const DUNGEONS = {
-  "Void Invasion": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=1827141351&single=true&output=csv",
-  "Void Taint": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=1202569298&single=true&output=csv",
-  "Void Nightmare": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=288867483&single=true&output=csv",
-  "Tower of Disappearance": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=1230006600&single=true&output=csv"
-};
+  <script>
+    const DUNGEONS = {
+      "Void Invasion": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=1827141351&single=true&output=csv",
+      "Void Taint": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=1202569298&single=true&output=csv",
+      "Void Nightmare": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=288867483&single=true&output=csv",
+      "Tower of Disappearance": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=1230006600&single=true&output=csv"
+    };
 
-const TIER_ORDER = ["SS","S","A","B","C","D","F","N/A"];
-const dungeonOrder = Object.keys(DUNGEONS);
+    const TIER_ORDER = ["SS","S","A","B","C","D","F","N/A"];
+    const dungeonOrder = Object.keys(DUNGEONS);
 
-let state = {
-  active:"Void Invasion",
-  view:"leaderboard",
-  data:{},
-  selected:null,
-  loadingDungeon:false,
-  loadingTabs:new Set(),
-  tierActive:"Overall"
-};
+    let state = {
+      active: "Void Invasion",
+      view: "leaderboard",
+      data: {},
+      selected: null,
+      loadingDungeon: false,
+      loadingTabs: new Set(),
+      tierActive: "Overall"
+    };
 
-const titleEl = document.getElementById("title");
-const headerMetaEl = document.getElementById("headerMeta");
-const contentAreaEl = document.getElementById("contentArea");
-const videoTitleEl = document.getElementById("videoTitle");
-const videoSubtitleEl = document.getElementById("videoSubtitle");
-const videoCardEl = document.getElementById("videoCard");
-const videoAreaEl = document.getElementById("videoArea");
-const videoActionsEl = document.getElementById("videoActions");
-const youtubeButtonEl = document.getElementById("youtubeButton");
-const copyButtonEl = document.getElementById("copyButton");
-const videoExtraEl = document.getElementById("videoExtra");
-const viewLeaderboardEl = document.getElementById("viewLeaderboard");
-const viewTierEl = document.getElementById("viewTier");
-let lastRefreshText = "";
+    const titleEl = document.getElementById("title");
+    const headerMetaEl = document.getElementById("headerMeta");
+    const contentAreaEl = document.getElementById("contentArea");
+    const videoTitleEl = document.getElementById("videoTitle");
+    const videoSubtitleEl = document.getElementById("videoSubtitle");
+    const videoCardEl = document.getElementById("videoCard");
+    const videoAreaEl = document.getElementById("videoArea");
+    const videoActionsEl = document.getElementById("videoActions");
+    const youtubeButtonEl = document.getElementById("youtubeButton");
+    const copyButtonEl = document.getElementById("copyButton");
+    const videoExtraEl = document.getElementById("videoExtra");
+    const viewLeaderboardEl = document.getElementById("viewLeaderboard");
+    const viewTierEl = document.getElementById("viewTier");
+    let lastRefreshText = "";
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\\"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
 
-function parseCSV(text) {
-  const lines = text.replace(/\r/g, "").split("\n").filter(Boolean);
-  const headerIndex = lines.findIndex(line => line.toLowerCase().includes("position") && line.toLowerCase().includes("character"));
-  if (headerIndex === -1) return [];
+    function parseCSV(text) {
+      const lines = text.replace(/\r/g, "").split("\n").filter(Boolean);
+      const headerIndex = lines.findIndex(line =>
+        line.toLowerCase().includes("position") &&
+        line.toLowerCase().includes("character")
+      );
+      if (headerIndex === -1) return [];
 
-  const header = parseDelimitedLine(lines[headerIndex], ",");
-  return lines.slice(headerIndex + 1).map(line => {
-    const values = parseDelimitedLine(line, ",");
-    const row = {};
-    header.forEach((h, i) => row[h] = (values[i] ?? "").trim());
-    return row;
-  });
-}
+      const header = parseDelimitedLine(lines[headerIndex], ",");
+      return lines.slice(headerIndex + 1).map(line => {
+        const values = parseDelimitedLine(line, ",");
+        const row = {};
+        header.forEach((h, i) => row[h] = (values[i] ?? "").trim());
+        return row;
+      });
+    }
 
-function parseDelimitedLine(line, delimiter) {
-  const values = [];
-  let current = "";
-  let inQuotes = false;
+    function parseDelimitedLine(line, delimiter) {
+      const values = [];
+      let current = "";
+      let inQuotes = false;
 
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    const next = line[i + 1];
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const next = line[i + 1];
 
-    if (char === '"') {
-      if (inQuotes && next === '"') {
-        current += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === delimiter && !inQuotes) {
+          values.push(current.trim());
+          current = "";
+        } else {
+          current += char;
+        }
       }
-    } else if (char === delimiter && !inQuotes) {
+
       values.push(current.trim());
-      current = "";
-    } else {
-      current += char;
+      return values;
     }
-  }
 
-  values.push(current.trim());
-  return values;
-}
-
-function toSec(t) {
-  const parts = String(t || "").split(":").map(Number);
-  if (parts.length === 2 && !parts.some(Number.isNaN)) return parts[0] * 60 + parts[1];
-  if (parts.length === 3 && !parts.some(Number.isNaN)) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-  return Infinity;
-}
-
-function normalizeCharacterName(raw) {
-  return String(raw || "").replace(/^\d+\)\s*/, "").trim();
-}
-
-function iconFileFromCharacter(raw) {
-  return normalizeCharacterName(raw)
-    .toLowerCase()
-    .replace(/\//g, "-")
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "") + ".jpg";
-}
-
-function enrichRows(rows) {
-  return rows
-    .filter(r => r.Player && r.Time && r.Character && r.Position && r["Speedrun video:"])
-    .map(r => ({
-      ...r,
-      char: normalizeCharacterName(r.Character),
-      iconFile: iconFileFromCharacter(r.Character),
-      sec: toSec(r.Time)
-    }))
-    .sort((a, b) => a.sec - b.sec || parseInt(a.Position, 10) - parseInt(b.Position, 10) || a.char.localeCompare(b.char));
-}
-
-function yt(url) {
-  try {
-    const parsed = new URL(url);
-    if (parsed.hostname.includes("youtu.be")) {
-      return `https://www.youtube.com/embed/${parsed.pathname.replace("/", "").trim()}`;
+    function toSec(t) {
+      const parts = String(t || "").split(":").map(Number);
+      if (parts.length === 2 && !parts.some(Number.isNaN)) return parts[0] * 60 + parts[1];
+      if (parts.length === 3 && !parts.some(Number.isNaN)) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+      return Infinity;
     }
-    if (parsed.hostname.includes("youtube.com")) {
-      const id = parsed.searchParams.get("v");
-      return id ? `https://www.youtube.com/embed/${id}` : "";
+
+    function normalizeCharacterName(raw) {
+      return String(raw || "").replace(/^\d+\)\s*/, "").trim();
     }
-  } catch (e) {}
-  return "";
-}
 
-function makeRowKey(row) {
-  return [row.Position, row.char, row.Player, row.Time, row["Post date (dd/mm/yyyy)"] || ""].join("|");
-}
+    function iconFileFromCharacter(raw) {
+      return normalizeCharacterName(raw)
+        .toLowerCase()
+        .replace(/\//g, "-")
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "") + ".jpg";
+    }
 
-function selectRow(row, dungeon = state.active) {
-  state.selected = row ? { dungeon, rowKey: makeRowKey(row), row } : null;
-  render();
-  renderVideo();
-}
+    function enrichRows(rows) {
+      return rows
+        .filter(r => r.Player && r.Time && r.Character && r.Position && r["Speedrun video:"])
+        .map(r => ({
+          ...r,
+          char: normalizeCharacterName(r.Character),
+          iconFile: iconFileFromCharacter(r.Character),
+          sec: toSec(r.Time)
+        }))
+        .sort((a, b) =>
+          a.sec - b.sec ||
+          parseInt(a.Position, 10) - parseInt(b.Position, 10) ||
+          a.char.localeCompare(b.char)
+        );
+    }
 
-function renderViewTabs() {
-  viewLeaderboardEl.className = "view-tab" + (state.view === "leaderboard" ? " active" : "");
-  viewTierEl.className = "view-tab" + (state.view === "tier" ? " active" : "");
-}
+    function yt(url) {
+      try {
+        const parsed = new URL(url);
+        if (parsed.hostname.includes("youtu.be")) {
+          return `https://www.youtube.com/embed/${parsed.pathname.replace("/", "").trim()}`;
+        }
+        if (parsed.hostname.includes("youtube.com")) {
+          const id = parsed.searchParams.get("v");
+          return id ? `https://www.youtube.com/embed/${id}` : "";
+        }
+      } catch (e) {}
+      return "";
+    }
 
-function renderDungeonTabs() {
-  return `
-    <div class="tabs">
-      ${dungeonOrder.map(d => `
-        <button type="button" class="tab ${state.active === d ? "active" : ""}${state.loadingTabs.has(d) ? " loading" : ""}" data-dungeon="${escapeHtml(d)}">
-          <span>${escapeHtml(d)}</span>
-          <span class="tab-spinner"></span>
-        </button>
-      `).join("")}
-    </div>
-  `;
-}
+    function makeRowKey(row) {
+      return [row.Position, row.char, row.Player, row.Time, row["Post date (dd/mm/yyyy)"] || ""].join("|");
+    }
 
-function bindDungeonTabs() {
-  contentAreaEl.querySelectorAll(".tab[data-dungeon]").forEach(el => {
-    el.addEventListener("click", async () => {
-      const dungeon = el.getAttribute("data-dungeon");
-      state.active = dungeon;
-      state.selected = null;
-      if (!state.data[dungeon]) {
-        state.loadingDungeon = true;
-        state.loadingTabs.add(dungeon);
-        render();
-        renderVideo();
-        await loadDungeon(dungeon);
-        state.loadingTabs.delete(dungeon);
-        state.loadingDungeon = false;
-      }
+    function selectRow(row, dungeon = state.active) {
+      state.selected = row ? { dungeon, rowKey: makeRowKey(row), row } : null;
       render();
       renderVideo();
-    });
-  });
-}
-
-function renderTopThree(rows) {
-  const top = rows.slice(0, 3);
-  if (!top.length) return "";
-  const classes = ["first","second","third"];
-  return `
-    <div class="top-three">
-      ${top.map((r, i) => `
-        <div class="top-card ${classes[i]}" data-row-key="${escapeHtml(makeRowKey(r))}">
-          <div class="top-rank">Top ${i + 1}</div>
-          <div class="top-main">
-            <img class="top-icon" src="${escapeHtml(r.iconFile)}" alt="${escapeHtml(r.char)}" onerror="this.style.display='none'">
-            <div>
-              <div class="top-character">${escapeHtml(r.char)}</div>
-              <div class="top-player">${escapeHtml(r.Player)}</div>
-            </div>
-          </div>
-          <div class="top-time">${escapeHtml(r.Time)}</div>
-        </div>
-      `).join("")}
-    </div>
-  `;
-}
-
-function bindTopThree(rows) {
-  contentAreaEl.querySelectorAll(".top-card").forEach(el => {
-    el.addEventListener("click", () => {
-      const key = el.getAttribute("data-row-key");
-      const row = rows.find(r => makeRowKey(r) === key);
-      if (row) selectRow(row, state.active);
-    });
-  });
-}
-
-function renderLeaderboardView() {
-  const rows = state.data[state.active] || [];
-  titleEl.textContent = state.active;
-  headerMetaEl.textContent = `${rows.length} total${lastRefreshText ? ` • ${lastRefreshText}` : ""}`;
-
-  if (state.loadingDungeon && !rows.length) {
-    contentAreaEl.innerHTML = `${renderDungeonTabs()}<div class="loading-shell">${Array.from({length:8}).map(() => `<div class="skeleton-row"><div class="skeleton-block"></div><div class="skeleton-block"></div><div class="skeleton-block"></div><div class="skeleton-block"></div><div class="skeleton-block"></div><div class="skeleton-block"></div></div>`).join("")}</div>`;
-    bindDungeonTabs();
-    return;
-  }
-
-  if (!rows.length) {
-    contentAreaEl.innerHTML = `${renderDungeonTabs()}<div class="empty">No runs found for ${escapeHtml(state.active)}.</div>`;
-    bindDungeonTabs();
-    return;
-  }
-
-  const firstSec = rows[0].sec;
-
-  contentAreaEl.innerHTML = `
-    ${renderTopThree(rows)}
-    ${renderDungeonTabs()}
-    <div class="table-wrap">
-      <table>
-        <colgroup>
-          <col class="col-pos"><col class="col-character"><col class="col-player"><col class="col-time"><col class="col-date"><col class="col-gap">
-        </colgroup>
-        <thead>
-          <tr><th>Pos</th><th>Character</th><th>Player</th><th>Time</th><th>Date</th><th>Gap</th></tr>
-        </thead>
-        <tbody>
-          ${rows.map(r => {
-            const activeClass = state.selected && state.selected.dungeon === state.active && state.selected.rowKey === makeRowKey(r) ? "active-row" : "";
-            const rankClass = r.Position === "1" ? "rank rank-1" : r.Position === "2" ? "rank rank-2" : r.Position === "3" ? "rank rank-3" : "rank";
-            const diff = r.sec - firstSec;
-            return `
-              <tr class="${activeClass}" data-row-key="${escapeHtml(makeRowKey(r))}">
-                <td class="${rankClass}">${escapeHtml(r.Position)}</td>
-                <td><div class="character-cell"><img class="character-icon" src="${escapeHtml(r.iconFile)}" alt="${escapeHtml(r.char)}" onerror="this.style.display='none'"><span class="character-name">${escapeHtml(r.char)}</span></div></td>
-                <td><span class="player-name">${escapeHtml(r.Player)}</span></td>
-                <td>${escapeHtml(r.Time)}</td>
-                <td>${escapeHtml(r["Post date (dd/mm/yyyy)"] || "")}</td>
-                <td class="${diff === 0 ? "delta neutral" : "delta good"}">${diff === 0 ? "—" : `+${diff.toFixed(2)}s`}</td>
-              </tr>
-            `;
-          }).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
-
-  bindDungeonTabs();
-  bindTopThree(rows);
-  contentAreaEl.querySelectorAll("tbody tr").forEach(el => {
-    el.addEventListener("click", () => {
-      const key = el.getAttribute("data-row-key");
-      const row = rows.find(r => makeRowKey(r) === key);
-      if (row) selectRow(row, state.active);
-    });
-  });
-}
-
-function tierFromScore(s) {
-  if (s >= .92) return "SS";
-  if (s >= .82) return "S";
-  if (s >= .68) return "A";
-  if (s >= .54) return "B";
-  if (s >= .40) return "C";
-  if (s >= .25) return "D";
-  return "F";
-}
-
-function allCharacters() {
-  const set = new Map();
-  dungeonOrder.forEach(d => {
-    (state.data[d] || []).forEach(r => {
-      if (!set.has(r.char)) set.set(r.char, { char:r.char, iconFile:r.iconFile });
-    });
-  });
-  return [...set.values()].sort((a,b) => a.char.localeCompare(b.char));
-}
-
-function buildDungeonTierData(dungeon) {
-  const rows = state.data[dungeon] || [];
-  const groups = Object.fromEntries(TIER_ORDER.map(t => [t, []]));
-  const characters = allCharacters();
-  const rowMap = new Map(rows.map(r => [r.char, r]));
-
-  if (!rows.length) {
-    characters.forEach(c => groups["N/A"].push({ ...c, dungeon }));
-    return groups;
-  }
-
-  const best = rows[0].sec;
-  const worst = Math.max(...rows.map(r => r.sec));
-  const range = Math.max(worst - best, 1);
-
-  characters.forEach(c => {
-    const row = rowMap.get(c.char);
-    if (!row) {
-      groups["N/A"].push({ ...c, dungeon });
-      return;
     }
-    const score = 1 - ((row.sec - best) / range);
-    const tier = tierFromScore(score);
-    groups[tier].push({ ...row, score, dungeon });
-  });
 
-  return groups;
-}
+    function renderViewTabs() {
+      viewLeaderboardEl.className = "view-tab" + (state.view === "leaderboard" ? " active" : "");
+      viewTierEl.className = "view-tab" + (state.view === "tier" ? " active" : "");
+    }
 
-function buildOverallTierData() {
-  const byCharacter = new Map();
-
-  // Precompute all characters
-  const characters = allCharacters();
-
-  dungeonOrder.forEach(dungeon => {
-    const rows = state.data[dungeon] || [];
-    const fieldSize = rows.length;
-
-    if (!fieldSize) return;
-
-    const denom = Math.max(fieldSize - 1, 1);
-
-    // Map character → row
-    const rowMap = new Map(rows.map(r => [r.char, r]));
-
-    characters.forEach(charObj => {
-      const char = charObj.char;
-      const row = rowMap.get(char);
-
-      // If missing → assign next place
-      const rank = row
-        ? parseInt(row.Position, 10)
-        : fieldSize + 1;
-
-      const score = 1 - ((rank - 1) / denom);
-
-      if (!byCharacter.has(char)) {
-        byCharacter.set(char, {
-          char: char,
-          iconFile: charObj.iconFile,
-          total: 0,
-          count: 0,
-          bestScore: -1,
-          bestRow: row || null,
-          bestDungeon: dungeon,
-          dungeonRanks: {}
-        });
-      }
-
-      const item = byCharacter.get(char);
-      item.total += score;
-      item.count += 1;
-
-      if (row) {
-        item.dungeonRanks[dungeon] = row.Position;
-      } else {
-        item.dungeonRanks[dungeon] = "-";
-      }
-
-      if (row && score > item.bestScore) {
-        item.bestScore = score;
-        item.bestRow = row;
-        item.bestDungeon = dungeon;
-      }
-    });
-  });
-
-  const groups = Object.fromEntries(TIER_ORDER.map(t => [t, []]));
-
-  byCharacter.forEach(item => {
-    const finalScore = item.total / dungeonOrder.length; // always divide by 4
-
-    const tier = tierFromScore(finalScore);
-
-    groups[tier].push({
-      ...item,
-      score: finalScore
-    });
-  });
-
-  return groups;
-}
-
-  const groups = Object.fromEntries(TIER_ORDER.map(t => [t, []]));
-
-  byCharacter.forEach(item => {
-    const averageScore = item.total / item.count;
-    const completionMultiplier = item.count / totalDungeons;
-    const finalScore = averageScore * completionMultiplier;
-    const tier = tierFromScore(finalScore);
-
-    groups[tier].push({
-      ...item,
-      score: finalScore
-    });
-  });
-
-  return groups;
-}
-
-function renderTierGroups(groups, overall = false) {
-  return TIER_ORDER.map(tier => {
-    let items = groups[tier] || [];
-
-    items = items.slice().sort((a, b) => {
-      if (tier === "N/A") return a.char.localeCompare(b.char);
-      if (overall) return (b.score - a.score) || a.char.localeCompare(b.char);
-      return (a.sec - b.sec) || a.char.localeCompare(b.char);
-    });
-
-    const cls = tier === "N/A" ? "NA" : tier;
-    return `
-      <div class="tier-group">
-        <div class="tier-header">
-          <div class="tier-label tier-${cls}">${tier}</div>
-          <div class="tier-cards">
-            ${items.length ? items.map(item => {
-              let sub = "";
-              let scoreText = "";
-
-              if (tier === "N/A") {
-                sub = "No run";
-                scoreText = "No tracked run";
-              } else if (overall) {
-                sub = `
-                  <div class="rank-grid">
-                    <span>V1 (${item.dungeonRanks["Void Invasion"] ? "#" + item.dungeonRanks["Void Invasion"] : "-"})</span>
-                    <span>V2 (${item.dungeonRanks["Void Taint"] ? "#" + item.dungeonRanks["Void Taint"] : "-"})</span>
-                    <span>V3 (${item.dungeonRanks["Void Nightmare"] ? "#" + item.dungeonRanks["Void Nightmare"] : "-"})</span>
-                    <span>ToD (${item.dungeonRanks["Tower of Disappearance"] ? "#" + item.dungeonRanks["Tower of Disappearance"] : "-"})</span>
-                  </div>
-                `;
-                scoreText = `Score ${(item.score * 100).toFixed(1)}`;
-              } else {
-                sub = item.Time || "";
-                scoreText = `Score ${(item.score * 100).toFixed(1)}`;
-              }
-
-              return `
-                <div class="tier-card" data-char="${escapeHtml(item.char)}" data-dungeon="${escapeHtml(overall ? item.bestDungeon : (item.dungeon || ""))}" data-na="${tier === "N/A" ? "1" : "0"}" data-overall="${overall ? "1" : "0"}">
-                  <div class="tier-card-main">
-                    <img class="tier-icon" src="${escapeHtml(item.iconFile || "")}" alt="${escapeHtml(item.char)}" onerror="this.style.display='none'">
-                    <div class="tier-card-text">
-                      <div class="tier-card-name">${escapeHtml(item.char)}</div>
-                      <div class="tier-card-sub">${overall ? sub : escapeHtml(sub)}</div>
-                    </div>
-                  </div>
-                  <div class="tier-card-score">${escapeHtml(scoreText)}</div>
-                </div>
-              `;
-            }).join("") : `<div class="tier-note">No characters in this tier.</div>`}
-          </div>
-        </div>
-      </div>
-    `;
-  }).join("");
-}
-
-function bindTierClicks() {
-  contentAreaEl.querySelectorAll(".tier-card").forEach(el => {
-    el.addEventListener("click", () => {
-      if (el.dataset.na === "1") return;
-
-      const character = el.dataset.char;
-      const dungeon = el.dataset.dungeon;
-      const isOverall = el.dataset.overall === "1";
-
-      if (isOverall) {
-        renderOverallCharacterVideos(character);
-        return;
-      }
-
-      if (!dungeon) return;
-      const row = (state.data[dungeon] || []).find(r => r.char === character);
-      if (row) selectRow(row, dungeon);
-    });
-  });
-}
-
-function renderTierView() {
-  titleEl.textContent = "Tier Lists";
-  headerMetaEl.textContent = `Overall tiers use rank-based scoring with a missing-run penalty. Per-dungeon tiers still use time proximity to first place, and characters with no run go into N/A.${lastRefreshText ? ` • ${lastRefreshText}` : ""}`;
-
-  const tierTabs = ["Overall", ...dungeonOrder];
-  const activeTier = state.tierActive || "Overall";
-
-  let bodyHtml = "";
-  if (activeTier === "Overall") {
-    bodyHtml = renderTierGroups(buildOverallTierData(), true);
-  } else {
-    bodyHtml = renderTierGroups(buildDungeonTierData(activeTier), false);
-  }
-
-  contentAreaEl.innerHTML = `
-    <div class="tier-wrap">
-      <div class="tabs">
-        ${tierTabs.map(t => `
-          <button type="button" class="tab ${activeTier === t ? "active" : ""}" data-tier-tab="${escapeHtml(t)}">${escapeHtml(t)}</button>
-        `).join("")}
-      </div>
-      ${bodyHtml}
-    </div>
-  `;
-
-  contentAreaEl.querySelectorAll("[data-tier-tab]").forEach(el => {
-    el.addEventListener("click", () => {
-      state.tierActive = el.getAttribute("data-tier-tab");
-      renderTierView();
-    });
-  });
-
-  bindTierClicks();
-}
-
-function renderOverallCharacterVideos(character) {
-  const sections = dungeonOrder.map(dungeon => {
-    const row = (state.data[dungeon] || []).find(r => r.char === character);
-
-    if (!row) {
+    function renderDungeonTabs() {
       return `
-        <div class="multi-video-block">
-          <h3>${escapeHtml(dungeon)}</h3>
-          <div class="multi-video-empty">No run</div>
+        <div class="tabs">
+          ${dungeonOrder.map(d => `
+            <button type="button" class="tab ${state.active === d ? "active" : ""}${state.loadingTabs.has(d) ? " loading" : ""}" data-dungeon="${escapeHtml(d)}">
+              <span>${escapeHtml(d)}</span>
+              <span class="tab-spinner"></span>
+            </button>
+          `).join("")}
         </div>
       `;
     }
 
-    const embed = yt(row["Speedrun video:"]);
-    return `
-      <div class="multi-video-block">
-        <h3>${escapeHtml(dungeon)}</h3>
-        <div class="multi-video-meta">
-          ${escapeHtml(row.char)} • ${escapeHtml(row.Player)} • ${escapeHtml(row.Time)} • #${escapeHtml(row.Position)}
-        </div>
-        ${
-          embed
-            ? `<iframe class="multi-video-frame" src="${escapeHtml(embed)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
-            : `<div class="multi-video-empty">Invalid or missing YouTube link</div>`
-        }
-      </div>
-    `;
-  }).join("");
+    function bindDungeonTabs() {
+      contentAreaEl.querySelectorAll(".tab[data-dungeon]").forEach(el => {
+        el.addEventListener("click", async () => {
+          const dungeon = el.getAttribute("data-dungeon");
+          state.active = dungeon;
+          state.selected = null;
 
-  videoTitleEl.textContent = `${character} • Overall`;
-  videoSubtitleEl.textContent = `All available dungeon runs for this character`;
-  videoCardEl.innerHTML = "";
-  videoAreaEl.className = "";
-  videoAreaEl.innerHTML = `<div class="multi-video-wrap">${sections}</div>`;
-  videoActionsEl.style.display = "none";
-  videoExtraEl.innerHTML = "";
-}
+          if (!state.data[dungeon]) {
+            state.loadingDungeon = true;
+            state.loadingTabs.add(dungeon);
+            render();
+            renderVideo();
+            await loadDungeon(dungeon);
+            state.loadingTabs.delete(dungeon);
+            state.loadingDungeon = false;
+          }
 
-function render() {
-  renderViewTabs();
-  if (state.view === "leaderboard") renderLeaderboardView();
-  else renderTierView();
-}
-
-function renderVideo() {
-  if (state.loadingDungeon && !state.selected) {
-    videoTitleEl.textContent = "Loading runs...";
-    videoSubtitleEl.textContent = "Fetching leaderboard data from the sheet.";
-    videoCardEl.innerHTML = "";
-    videoAreaEl.className = "";
-    videoAreaEl.innerHTML = `<div class="video-loading"><div class="video-skeleton"></div></div>`;
-    videoActionsEl.style.display = "none";
-    videoExtraEl.innerHTML = "";
-    return;
-  }
-
-  if (!state.selected || !state.selected.row) {
-    videoTitleEl.textContent = "Select a run";
-    videoSubtitleEl.textContent = "Choose any leaderboard row or tier card to embed the video here.";
-    videoCardEl.innerHTML = "";
-    videoAreaEl.className = "placeholder";
-    videoAreaEl.innerHTML = "No video selected";
-    videoActionsEl.style.display = "none";
-    videoExtraEl.innerHTML = "";
-    return;
-  }
-
-  const row = state.selected.row;
-  const embed = yt(row["Speedrun video:"]);
-
-  videoTitleEl.textContent = `${row.Player} • ${row.char}`;
-  videoSubtitleEl.textContent = `${state.selected.dungeon} • ${row.Time} • ${row["Post date (dd/mm/yyyy)"] || ""}`;
-
-  videoCardEl.innerHTML = `
-    <div class="video-card">
-      <div class="video-card-main">
-        <img class="video-card-icon" src="${escapeHtml(row.iconFile)}" alt="${escapeHtml(row.char)}" onerror="this.style.display='none'">
-        <div class="video-card-text">
-          <div>${escapeHtml(row.char)}</div>
-          <div class="video-card-player">${escapeHtml(row.Player)}</div>
-        </div>
-      </div>
-      <div class="video-card-sub">Position ${escapeHtml(row.Position)} • ${escapeHtml(row.Time)}</div>
-    </div>
-  `;
-
-  if (!embed) {
-    videoAreaEl.className = "placeholder";
-    videoAreaEl.innerHTML = "Invalid or missing YouTube link";
-    videoActionsEl.style.display = "none";
-    videoExtraEl.innerHTML = "";
-    return;
-  }
-
-  videoAreaEl.className = "";
-  videoAreaEl.innerHTML = `<div class="video-frame-wrap"><iframe class="video-frame" src="${escapeHtml(embed)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`;
-  youtubeButtonEl.href = row["Speedrun video:"];
-  videoActionsEl.style.display = "flex";
-  videoExtraEl.innerHTML = `Submitted on ${escapeHtml(row["Post date (dd/mm/yyyy)"] || "")}.`;
-}
-
-async function loadDungeon(dungeon) {
-  try {
-    const response = await fetch(DUNGEONS[dungeon], { cache:"no-store" });
-    if (!response.ok) {
-      state.data[dungeon] = [];
-      return;
+          render();
+          renderVideo();
+        });
+      });
     }
-    const text = await response.text();
-    state.data[dungeon] = enrichRows(parseCSV(text));
-  } catch (e) {
-    state.data[dungeon] = [];
-  }
-}
 
-function preloadRemainingDungeons() {
-  dungeonOrder.filter(d => d !== state.active && !state.data[d]).forEach(async d => {
-    state.loadingTabs.add(d);
+    function renderTopThree(rows) {
+      const top = rows.slice(0, 3);
+      if (!top.length) return "";
+      const classes = ["first","second","third"];
+
+      return `
+        <div class="top-three">
+          ${top.map((r, i) => `
+            <div class="top-card ${classes[i]}" data-row-key="${escapeHtml(makeRowKey(r))}">
+              <div class="top-rank">Top ${i + 1}</div>
+              <div class="top-main">
+                <img class="top-icon" src="${escapeHtml(r.iconFile)}" alt="${escapeHtml(r.char)}" onerror="this.style.display='none'">
+                <div>
+                  <div class="top-character">${escapeHtml(r.char)}</div>
+                  <div class="top-player">${escapeHtml(r.Player)}</div>
+                </div>
+              </div>
+              <div class="top-time">${escapeHtml(r.Time)}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function bindTopThree(rows) {
+      contentAreaEl.querySelectorAll(".top-card").forEach(el => {
+        el.addEventListener("click", () => {
+          const key = el.getAttribute("data-row-key");
+          const row = rows.find(r => makeRowKey(r) === key);
+          if (row) selectRow(row, state.active);
+        });
+      });
+    }
+
+    function renderLeaderboardView() {
+      const rows = state.data[state.active] || [];
+      titleEl.textContent = state.active;
+      headerMetaEl.textContent = `${rows.length} total${lastRefreshText ? ` • ${lastRefreshText}` : ""}`;
+
+      if (state.loadingDungeon && !rows.length) {
+        contentAreaEl.innerHTML = `
+          ${renderDungeonTabs()}
+          <div class="loading-shell">
+            ${Array.from({ length: 8 }).map(() => `
+              <div class="skeleton-row">
+                <div class="skeleton-block"></div>
+                <div class="skeleton-block"></div>
+                <div class="skeleton-block"></div>
+                <div class="skeleton-block"></div>
+                <div class="skeleton-block"></div>
+                <div class="skeleton-block"></div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+        bindDungeonTabs();
+        return;
+      }
+
+      if (!rows.length) {
+        contentAreaEl.innerHTML = `${renderDungeonTabs()}<div class="empty">No runs found for ${escapeHtml(state.active)}.</div>`;
+        bindDungeonTabs();
+        return;
+      }
+
+      const firstSec = rows[0].sec;
+
+      contentAreaEl.innerHTML = `
+        ${renderTopThree(rows)}
+        ${renderDungeonTabs()}
+        <div class="table-wrap">
+          <table>
+            <colgroup>
+              <col class="col-pos"><col class="col-character"><col class="col-player"><col class="col-time"><col class="col-date"><col class="col-gap">
+            </colgroup>
+            <thead>
+              <tr><th>Pos</th><th>Character</th><th>Player</th><th>Time</th><th>Date</th><th>Gap</th></tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => {
+                const activeClass = state.selected && state.selected.dungeon === state.active && state.selected.rowKey === makeRowKey(r) ? "active-row" : "";
+                const rankClass = r.Position === "1" ? "rank rank-1" : r.Position === "2" ? "rank rank-2" : r.Position === "3" ? "rank rank-3" : "rank";
+                const diff = r.sec - firstSec;
+                return `
+                  <tr class="${activeClass}" data-row-key="${escapeHtml(makeRowKey(r))}">
+                    <td class="${rankClass}">${escapeHtml(r.Position)}</td>
+                    <td>
+                      <div class="character-cell">
+                        <img class="character-icon" src="${escapeHtml(r.iconFile)}" alt="${escapeHtml(r.char)}" onerror="this.style.display='none'">
+                        <span class="character-name">${escapeHtml(r.char)}</span>
+                      </div>
+                    </td>
+                    <td><span class="player-name">${escapeHtml(r.Player)}</span></td>
+                    <td>${escapeHtml(r.Time)}</td>
+                    <td>${escapeHtml(r["Post date (dd/mm/yyyy)"] || "")}</td>
+                    <td class="${diff === 0 ? "delta neutral" : "delta good"}">${diff === 0 ? "—" : `+${diff.toFixed(2)}s`}</td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      bindDungeonTabs();
+      bindTopThree(rows);
+      contentAreaEl.querySelectorAll("tbody tr").forEach(el => {
+        el.addEventListener("click", () => {
+          const key = el.getAttribute("data-row-key");
+          const row = rows.find(r => makeRowKey(r) === key);
+          if (row) selectRow(row, state.active);
+        });
+      });
+    }
+
+    function scoreFloor50(raw) {
+      const clamped = Math.max(0, Math.min(1, raw));
+      return 0.5 + (clamped * 0.5);
+    }
+
+    function tierFromScore(s) {
+      if (s >= 0.96) return "SS";
+      if (s >= 0.91) return "S";
+      if (s >= 0.84) return "A";
+      if (s >= 0.77) return "B";
+      if (s >= 0.70) return "C";
+      if (s >= 0.63) return "D";
+      return "F";
+    }
+
+    function allCharacters() {
+      const set = new Map();
+      dungeonOrder.forEach(d => {
+        (state.data[d] || []).forEach(r => {
+          if (!set.has(r.char)) set.set(r.char, { char: r.char, iconFile: r.iconFile });
+        });
+      });
+      return [...set.values()].sort((a,b) => a.char.localeCompare(b.char));
+    }
+
+    function buildDungeonTierData(dungeon) {
+      const rows = state.data[dungeon] || [];
+      const groups = Object.fromEntries(TIER_ORDER.map(t => [t, []]));
+      const characters = allCharacters();
+      const rowMap = new Map(rows.map(r => [r.char, r]));
+
+      if (!rows.length) {
+        characters.forEach(c => groups["N/A"].push({ ...c, dungeon }));
+        return groups;
+      }
+
+      const best = rows[0].sec;
+      const worst = Math.max(...rows.map(r => r.sec));
+      const range = Math.max(worst - best, 1);
+
+      characters.forEach(c => {
+        const row = rowMap.get(c.char);
+        if (!row) {
+          groups["N/A"].push({ ...c, dungeon });
+          return;
+        }
+
+        const rawScore = 1 - ((row.sec - best) / range);
+        const score = scoreFloor50(rawScore);
+        const tier = tierFromScore(score);
+
+        groups[tier].push({ ...row, score, dungeon });
+      });
+
+      return groups;
+    }
+
+    function buildOverallTierData() {
+      const byCharacter = new Map();
+      const characters = allCharacters();
+
+      dungeonOrder.forEach(dungeon => {
+        const rows = state.data[dungeon] || [];
+        const fieldSize = rows.length;
+        if (!fieldSize) return;
+
+        const denom = Math.max(fieldSize - 1, 1);
+        const rowMap = new Map(rows.map(r => [r.char, r]));
+
+        characters.forEach(charObj => {
+          const char = charObj.char;
+          const row = rowMap.get(char);
+
+          const rank = row ? parseInt(row.Position, 10) : fieldSize + 1;
+          const rawScore = 1 - ((rank - 1) / denom);
+          const score = scoreFloor50(rawScore);
+
+          if (!byCharacter.has(char)) {
+            byCharacter.set(char, {
+              char,
+              iconFile: charObj.iconFile,
+              total: 0,
+              bestScore: -1,
+              bestRow: row || null,
+              bestDungeon: dungeon,
+              dungeonRanks: {}
+            });
+          }
+
+          const item = byCharacter.get(char);
+          item.total += score;
+          item.dungeonRanks[dungeon] = row ? row.Position : "-";
+
+          if (row && score > item.bestScore) {
+            item.bestScore = score;
+            item.bestRow = row;
+            item.bestDungeon = dungeon;
+          }
+        });
+      });
+
+      const groups = Object.fromEntries(TIER_ORDER.map(t => [t, []]));
+
+      byCharacter.forEach(item => {
+        const finalScore = item.total / dungeonOrder.length;
+        const tier = tierFromScore(finalScore);
+
+        groups[tier].push({
+          ...item,
+          score: finalScore
+        });
+      });
+
+      return groups;
+    }
+
+    function renderTierGroups(groups, overall = false) {
+      return TIER_ORDER.map(tier => {
+        let items = groups[tier] || [];
+
+        items = items.slice().sort((a, b) => {
+          if (tier === "N/A") return a.char.localeCompare(b.char);
+          if (overall) return (b.score - a.score) || a.char.localeCompare(b.char);
+          return (a.sec - b.sec) || a.char.localeCompare(b.char);
+        });
+
+        const cls = tier === "N/A" ? "NA" : tier;
+
+        return `
+          <div class="tier-group">
+            <div class="tier-header">
+              <div class="tier-label tier-${cls}">${tier}</div>
+              <div class="tier-cards">
+                ${items.length ? items.map(item => {
+                  let sub = "";
+                  let scoreText = "";
+
+                  if (tier === "N/A") {
+                    sub = "No run";
+                    scoreText = "No tracked run";
+                  } else if (overall) {
+                    sub = `
+                      <div class="rank-grid">
+                        <span>V1 (${item.dungeonRanks["Void Invasion"] ? "#" + item.dungeonRanks["Void Invasion"] : "-"})</span>
+                        <span>V2 (${item.dungeonRanks["Void Taint"] ? "#" + item.dungeonRanks["Void Taint"] : "-"})</span>
+                        <span>V3 (${item.dungeonRanks["Void Nightmare"] ? "#" + item.dungeonRanks["Void Nightmare"] : "-"})</span>
+                        <span>ToD (${item.dungeonRanks["Tower of Disappearance"] ? "#" + item.dungeonRanks["Tower of Disappearance"] : "-"})</span>
+                      </div>
+                    `;
+                    scoreText = `Score ${(item.score * 100).toFixed(1)}`;
+                  } else {
+                    sub = item.Time || "";
+                    scoreText = `Score ${(item.score * 100).toFixed(1)}`;
+                  }
+
+                  return `
+                    <div class="tier-card" data-char="${escapeHtml(item.char)}" data-dungeon="${escapeHtml(overall ? item.bestDungeon : (item.dungeon || ""))}" data-na="${tier === "N/A" ? "1" : "0"}" data-overall="${overall ? "1" : "0"}">
+                      <div class="tier-card-main">
+                        <img class="tier-icon" src="${escapeHtml(item.iconFile || "")}" alt="${escapeHtml(item.char)}" onerror="this.style.display='none'">
+                        <div class="tier-card-text">
+                          <div class="tier-card-name">${escapeHtml(item.char)}</div>
+                          <div class="tier-card-sub">${overall ? sub : escapeHtml(sub)}</div>
+                        </div>
+                      </div>
+                      <div class="tier-card-score">${escapeHtml(scoreText)}</div>
+                    </div>
+                  `;
+                }).join("") : `<div class="tier-note">No characters in this tier.</div>`}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function bindTierClicks() {
+      contentAreaEl.querySelectorAll(".tier-card").forEach(el => {
+        el.addEventListener("click", () => {
+          if (el.dataset.na === "1") return;
+
+          const character = el.dataset.char;
+          const dungeon = el.dataset.dungeon;
+          const isOverall = el.dataset.overall === "1";
+
+          if (isOverall) {
+            renderOverallCharacterVideos(character);
+            return;
+          }
+
+          if (!dungeon) return;
+          const row = (state.data[dungeon] || []).find(r => r.char === character);
+          if (row) selectRow(row, dungeon);
+        });
+      });
+    }
+
+    function renderTierView() {
+      titleEl.textContent = "Tier Lists";
+      headerMetaEl.textContent = `Overall uses rank-based scoring with a 50-point floor. Dungeon tiers use time proximity to first place with the same 50-point floor. Characters with no dungeon run go into N/A.${lastRefreshText ? ` • ${lastRefreshText}` : ""}`;
+
+      const tierTabs = ["Overall", ...dungeonOrder];
+      const activeTier = state.tierActive || "Overall";
+
+      let bodyHtml = "";
+      if (activeTier === "Overall") {
+        bodyHtml = renderTierGroups(buildOverallTierData(), true);
+      } else {
+        bodyHtml = renderTierGroups(buildDungeonTierData(activeTier), false);
+      }
+
+      contentAreaEl.innerHTML = `
+        <div class="tier-wrap">
+          <div class="tabs">
+            ${tierTabs.map(t => `
+              <button type="button" class="tab ${activeTier === t ? "active" : ""}" data-tier-tab="${escapeHtml(t)}">${escapeHtml(t)}</button>
+            `).join("")}
+          </div>
+          ${bodyHtml}
+        </div>
+      `;
+
+      contentAreaEl.querySelectorAll("[data-tier-tab]").forEach(el => {
+        el.addEventListener("click", () => {
+          state.tierActive = el.getAttribute("data-tier-tab");
+          renderTierView();
+        });
+      });
+
+      bindTierClicks();
+    }
+
+    function renderOverallCharacterVideos(character) {
+      const sections = dungeonOrder.map(dungeon => {
+        const row = (state.data[dungeon] || []).find(r => r.char === character);
+
+        if (!row) {
+          return `
+            <div class="multi-video-block">
+              <h3>${escapeHtml(dungeon)}</h3>
+              <div class="multi-video-empty">No run</div>
+            </div>
+          `;
+        }
+
+        const embed = yt(row["Speedrun video:"]);
+        return `
+          <div class="multi-video-block">
+            <h3>${escapeHtml(dungeon)}</h3>
+            <div class="multi-video-meta">
+              ${escapeHtml(row.char)} • ${escapeHtml(row.Player)} • ${escapeHtml(row.Time)} • #${escapeHtml(row.Position)}
+            </div>
+            ${
+              embed
+                ? `<iframe class="multi-video-frame" src="${escapeHtml(embed)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
+                : `<div class="multi-video-empty">Invalid or missing YouTube link</div>`
+            }
+          </div>
+        `;
+      }).join("");
+
+      videoTitleEl.textContent = `${character} • Overall`;
+      videoSubtitleEl.textContent = `All available dungeon runs for this character`;
+      videoCardEl.innerHTML = "";
+      videoAreaEl.className = "";
+      videoAreaEl.innerHTML = `<div class="multi-video-wrap">${sections}</div>`;
+      videoActionsEl.style.display = "none";
+      videoExtraEl.innerHTML = "";
+    }
+
+    function render() {
+      renderViewTabs();
+      if (state.view === "leaderboard") renderLeaderboardView();
+      else renderTierView();
+    }
+
+    function renderVideo() {
+      if (state.loadingDungeon && !state.selected) {
+        videoTitleEl.textContent = "Loading runs...";
+        videoSubtitleEl.textContent = "Fetching leaderboard data from the sheet.";
+        videoCardEl.innerHTML = "";
+        videoAreaEl.className = "";
+        videoAreaEl.innerHTML = `<div class="video-loading"><div class="video-skeleton"></div></div>`;
+        videoActionsEl.style.display = "none";
+        videoExtraEl.innerHTML = "";
+        return;
+      }
+
+      if (!state.selected || !state.selected.row) {
+        videoTitleEl.textContent = "Select a run";
+        videoSubtitleEl.textContent = "Choose any leaderboard row or tier card to embed the video here.";
+        videoCardEl.innerHTML = "";
+        videoAreaEl.className = "placeholder";
+        videoAreaEl.innerHTML = "No video selected";
+        videoActionsEl.style.display = "none";
+        videoExtraEl.innerHTML = "";
+        return;
+      }
+
+      const row = state.selected.row;
+      const embed = yt(row["Speedrun video:"]);
+
+      videoTitleEl.textContent = `${row.Player} • ${row.char}`;
+      videoSubtitleEl.textContent = `${state.selected.dungeon} • ${row.Time} • ${row["Post date (dd/mm/yyyy)"] || ""}`;
+
+      videoCardEl.innerHTML = `
+        <div class="video-card">
+          <div class="video-card-main">
+            <img class="video-card-icon" src="${escapeHtml(row.iconFile)}" alt="${escapeHtml(row.char)}" onerror="this.style.display='none'">
+            <div class="video-card-text">
+              <div>${escapeHtml(row.char)}</div>
+              <div class="video-card-player">${escapeHtml(row.Player)}</div>
+            </div>
+          </div>
+          <div class="video-card-sub">Position ${escapeHtml(row.Position)} • ${escapeHtml(row.Time)}</div>
+        </div>
+      `;
+
+      if (!embed) {
+        videoAreaEl.className = "placeholder";
+        videoAreaEl.innerHTML = "Invalid or missing YouTube link";
+        videoActionsEl.style.display = "none";
+        videoExtraEl.innerHTML = "";
+        return;
+      }
+
+      videoAreaEl.className = "";
+      videoAreaEl.innerHTML = `<div class="video-frame-wrap"><iframe class="video-frame" src="${escapeHtml(embed)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`;
+      youtubeButtonEl.href = row["Speedrun video:"];
+      videoActionsEl.style.display = "flex";
+      videoExtraEl.innerHTML = `Submitted on ${escapeHtml(row["Post date (dd/mm/yyyy)"] || "")}.`;
+    }
+
+    async function loadDungeon(dungeon) {
+      try {
+        const response = await fetch(DUNGEONS[dungeon], { cache: "no-store" });
+        if (!response.ok) {
+          state.data[dungeon] = [];
+          return;
+        }
+        const text = await response.text();
+        state.data[dungeon] = enrichRows(parseCSV(text));
+      } catch (e) {
+        state.data[dungeon] = [];
+      }
+    }
+
+    function preloadRemainingDungeons() {
+      dungeonOrder
+        .filter(d => d !== state.active && !state.data[d])
+        .forEach(async d => {
+          state.loadingTabs.add(d);
+          render();
+          await loadDungeon(d);
+          state.loadingTabs.delete(d);
+          render();
+        });
+    }
+
+    async function load() {
+      state.loadingDungeon = true;
+      render();
+      renderVideo();
+      await loadDungeon(state.active);
+      state.loadingDungeon = false;
+      lastRefreshText = `updated ${new Date().toLocaleString()}`;
+      render();
+      renderVideo();
+      preloadRemainingDungeons();
+    }
+
+    viewLeaderboardEl.addEventListener("click", () => {
+      state.view = "leaderboard";
+      render();
+    });
+
+    viewTierEl.addEventListener("click", async () => {
+      state.view = "tier";
+      state.tierActive = state.tierActive || "Overall";
+      const missing = dungeonOrder.filter(d => !state.data[d]);
+      for (const dungeon of missing) {
+        state.loadingTabs.add(dungeon);
+        render();
+        await loadDungeon(dungeon);
+        state.loadingTabs.delete(dungeon);
+      }
+      render();
+    });
+
+    copyButtonEl.addEventListener("click", async () => {
+      if (!state.selected || !state.selected.row) return;
+      try {
+        await navigator.clipboard.writeText(state.selected.row["Speedrun video:"] || "");
+        copyButtonEl.textContent = "Copied";
+        setTimeout(() => copyButtonEl.textContent = "Copy video link", 1200);
+      } catch (e) {
+        copyButtonEl.textContent = "Copy failed";
+        setTimeout(() => copyButtonEl.textContent = "Copy video link", 1200);
+      }
+    });
+
     render();
-    await loadDungeon(d);
-    state.loadingTabs.delete(d);
-    render();
-  });
-}
-
-async function load() {
-  state.loadingDungeon = true;
-  render();
-  renderVideo();
-  await loadDungeon(state.active);
-  state.loadingDungeon = false;
-  lastRefreshText = `updated ${new Date().toLocaleString()}`;
-  render();
-  renderVideo();
-  preloadRemainingDungeons();
-}
-
-viewLeaderboardEl.addEventListener("click", () => {
-  state.view = "leaderboard";
-  render();
-});
-
-viewTierEl.addEventListener("click", async () => {
-  state.view = "tier";
-  state.tierActive = state.tierActive || "Overall";
-  const missing = dungeonOrder.filter(d => !state.data[d]);
-  for (const dungeon of missing) {
-    state.loadingTabs.add(dungeon);
-    render();
-    await loadDungeon(dungeon);
-    state.loadingTabs.delete(dungeon);
-  }
-  render();
-});
-
-copyButtonEl.addEventListener("click", async () => {
-  if (!state.selected || !state.selected.row) return;
-  try {
-    await navigator.clipboard.writeText(state.selected.row["Speedrun video:"] || "");
-    copyButtonEl.textContent = "Copied";
-    setTimeout(() => copyButtonEl.textContent = "Copy video link", 1200);
-  } catch (e) {
-    copyButtonEl.textContent = "Copy failed";
-    setTimeout(() => copyButtonEl.textContent = "Copy video link", 1200);
-  }
-});
-
-render();
-load();
-</script>
+    load();
+  </script>
 </body>
 </html>
