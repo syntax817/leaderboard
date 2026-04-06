@@ -868,46 +868,78 @@ function buildDungeonTierData(dungeon) {
 
 function buildOverallTierData() {
   const byCharacter = new Map();
-  const totalDungeons = dungeonOrder.length;
+
+  // Precompute all characters
+  const characters = allCharacters();
 
   dungeonOrder.forEach(dungeon => {
     const rows = state.data[dungeon] || [];
-    if (!rows.length) return;
-
     const fieldSize = rows.length;
+
+    if (!fieldSize) return;
+
     const denom = Math.max(fieldSize - 1, 1);
 
-    rows.forEach(row => {
-      const rank = parseInt(row.Position, 10);
-      if (!Number.isFinite(rank)) return;
+    // Map character → row
+    const rowMap = new Map(rows.map(r => [r.char, r]));
+
+    characters.forEach(charObj => {
+      const char = charObj.char;
+      const row = rowMap.get(char);
+
+      // If missing → assign next place
+      const rank = row
+        ? parseInt(row.Position, 10)
+        : fieldSize + 1;
 
       const score = 1 - ((rank - 1) / denom);
 
-      if (!byCharacter.has(row.char)) {
-        byCharacter.set(row.char, {
-          char: row.char,
-          iconFile: row.iconFile,
+      if (!byCharacter.has(char)) {
+        byCharacter.set(char, {
+          char: char,
+          iconFile: charObj.iconFile,
           total: 0,
           count: 0,
           bestScore: -1,
-          bestRow: row,
+          bestRow: row || null,
           bestDungeon: dungeon,
           dungeonRanks: {}
         });
       }
 
-      const item = byCharacter.get(row.char);
+      const item = byCharacter.get(char);
       item.total += score;
       item.count += 1;
-      item.dungeonRanks[dungeon] = row.Position;
 
-      if (score > item.bestScore) {
+      if (row) {
+        item.dungeonRanks[dungeon] = row.Position;
+      } else {
+        item.dungeonRanks[dungeon] = "-";
+      }
+
+      if (row && score > item.bestScore) {
         item.bestScore = score;
         item.bestRow = row;
         item.bestDungeon = dungeon;
       }
     });
   });
+
+  const groups = Object.fromEntries(TIER_ORDER.map(t => [t, []]));
+
+  byCharacter.forEach(item => {
+    const finalScore = item.total / dungeonOrder.length; // always divide by 4
+
+    const tier = tierFromScore(finalScore);
+
+    groups[tier].push({
+      ...item,
+      score: finalScore
+    });
+  });
+
+  return groups;
+}
 
   const groups = Object.fromEntries(TIER_ORDER.map(t => [t, []]));
 
