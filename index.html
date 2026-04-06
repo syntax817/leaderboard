@@ -342,6 +342,43 @@
       line-height:1.5;
     }
 
+    .multi-video-wrap {
+      padding:16px;
+      display:grid;
+      gap:18px;
+    }
+
+    .multi-video-block {
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:12px;
+      padding:12px;
+      background:rgba(255,255,255,.03);
+    }
+
+    .multi-video-block h3 {
+      margin:0 0 8px;
+      font-size:18px;
+    }
+
+    .multi-video-meta {
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:10px;
+    }
+
+    .multi-video-frame {
+      width:100%;
+      aspect-ratio:16 / 9;
+      border:0;
+      border-radius:10px;
+      background:black;
+    }
+
+    .multi-video-empty {
+      color:var(--muted);
+      padding:14px 0;
+    }
+
     .tier-wrap { padding:14px 16px 18px; }
     .tier-note { color:var(--muted); font-size:14px; line-height:1.5; margin-bottom:10px; }
     .tier-group {
@@ -462,7 +499,7 @@
     @media (max-width:1200px) {
       .layout { grid-template-columns:1fr; }
       .top-three { grid-template-columns:1fr; }
-      .video-frame, .video-skeleton { min-height:360px; }
+      .video-frame, .video-skeleton, .multi-video-frame { min-height:360px; }
       .placeholder { min-height:260px; }
       .tier-header { grid-template-columns:84px 1fr; }
       col.col-gap { width:18%; }
@@ -922,7 +959,7 @@ function renderTierGroups(groups, overall = false) {
               }
 
               return `
-                <div class="tier-card" data-char="${escapeHtml(item.char)}" data-dungeon="${escapeHtml(overall ? item.bestDungeon : (item.dungeon || ""))}" data-na="${tier === "N/A" ? "1" : "0"}">
+                <div class="tier-card" data-char="${escapeHtml(item.char)}" data-dungeon="${escapeHtml(overall ? item.bestDungeon : (item.dungeon || ""))}" data-na="${tier === "N/A" ? "1" : "0"}" data-overall="${overall ? "1" : "0"}">
                   <div class="tier-card-main">
                     <img class="tier-icon" src="${escapeHtml(item.iconFile || "")}" alt="${escapeHtml(item.char)}" onerror="this.style.display='none'">
                     <div class="tier-card-text">
@@ -945,10 +982,18 @@ function bindTierClicks() {
   contentAreaEl.querySelectorAll(".tier-card").forEach(el => {
     el.addEventListener("click", () => {
       if (el.dataset.na === "1") return;
+
+      const character = el.dataset.char;
       const dungeon = el.dataset.dungeon;
-      const char = el.dataset.char;
+      const isOverall = el.dataset.overall === "1";
+
+      if (isOverall) {
+        renderOverallCharacterVideos(character);
+        return;
+      }
+
       if (!dungeon) return;
-      const row = (state.data[dungeon] || []).find(r => r.char === char);
+      const row = (state.data[dungeon] || []).find(r => r.char === character);
       if (row) selectRow(row, dungeon);
     });
   });
@@ -988,6 +1033,44 @@ function renderTierView() {
   });
 
   bindTierClicks();
+}
+
+function renderOverallCharacterVideos(character) {
+  const sections = dungeonOrder.map(dungeon => {
+    const row = (state.data[dungeon] || []).find(r => r.char === character);
+
+    if (!row) {
+      return `
+        <div class="multi-video-block">
+          <h3>${escapeHtml(dungeon)}</h3>
+          <div class="multi-video-empty">No run</div>
+        </div>
+      `;
+    }
+
+    const embed = yt(row["Speedrun video:"]);
+    return `
+      <div class="multi-video-block">
+        <h3>${escapeHtml(dungeon)}</h3>
+        <div class="multi-video-meta">
+          ${escapeHtml(row.char)} • ${escapeHtml(row.Player)} • ${escapeHtml(row.Time)} • #${escapeHtml(row.Position)}
+        </div>
+        ${
+          embed
+            ? `<iframe class="multi-video-frame" src="${escapeHtml(embed)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
+            : `<div class="multi-video-empty">Invalid or missing YouTube link</div>`
+        }
+      </div>
+    `;
+  }).join("");
+
+  videoTitleEl.textContent = `${character} • Overall`;
+  videoSubtitleEl.textContent = `All available dungeon runs for this character`;
+  videoCardEl.innerHTML = "";
+  videoAreaEl.className = "";
+  videoAreaEl.innerHTML = `<div class="multi-video-wrap">${sections}</div>`;
+  videoActionsEl.style.display = "none";
+  videoExtraEl.innerHTML = "";
 }
 
 function render() {
