@@ -401,6 +401,22 @@
       line-height:1.4;
     }
 
+    .rank-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:4px 12px;
+      margin-top:2px;
+      color:var(--orange);
+      font-size:13px;
+      font-weight:700;
+      line-height:1.35;
+      white-space:normal;
+    }
+
+    .rank-grid span {
+      white-space:nowrap;
+    }
+
     .loading-shell { padding:12px 12px 18px; }
     .skeleton-row {
       display:grid;
@@ -869,8 +885,15 @@ function shortDungeonName(d) {
 
 function renderTierGroups(groups, overall = false) {
   return TIER_ORDER.map(tier => {
+    let items = groups[tier] || [];
+
+    items = items.slice().sort((a, b) => {
+      if (tier === "N/A") return a.char.localeCompare(b.char);
+      if (overall) return (b.score - a.score) || a.char.localeCompare(b.char);
+      return (a.sec - b.sec) || a.char.localeCompare(b.char);
+    });
+
     const cls = tier === "N/A" ? "NA" : tier;
-    const items = groups[tier] || [];
     return `
       <div class="tier-group">
         <div class="tier-header">
@@ -884,7 +907,14 @@ function renderTierGroups(groups, overall = false) {
                 sub = "No run";
                 scoreText = "No tracked run";
               } else if (overall) {
-                sub = dungeonOrder.map(d => `${shortDungeonName(d)}: ${item.dungeonRanks[d] ? "#" + item.dungeonRanks[d] : "-"}`).join(" | ");
+                sub = `
+                  <div class="rank-grid">
+                    <span>V1 (${item.dungeonRanks["Void Invasion"] ? "#" + item.dungeonRanks["Void Invasion"] : "-"})</span>
+                    <span>V2 (${item.dungeonRanks["Void Taint"] ? "#" + item.dungeonRanks["Void Taint"] : "-"})</span>
+                    <span>V3 (${item.dungeonRanks["Void Nightmare"] ? "#" + item.dungeonRanks["Void Nightmare"] : "-"})</span>
+                    <span>ToD (${item.dungeonRanks["Tower of Disappearance"] ? "#" + item.dungeonRanks["Tower of Disappearance"] : "-"})</span>
+                  </div>
+                `;
                 scoreText = `Score ${(item.score * 100).toFixed(1)}`;
               } else {
                 sub = item.Time || "";
@@ -897,7 +927,7 @@ function renderTierGroups(groups, overall = false) {
                     <img class="tier-icon" src="${escapeHtml(item.iconFile || "")}" alt="${escapeHtml(item.char)}" onerror="this.style.display='none'">
                     <div class="tier-card-text">
                       <div class="tier-card-name">${escapeHtml(item.char)}</div>
-                      <div class="tier-card-sub">${escapeHtml(sub)}</div>
+                      <div class="tier-card-sub">${overall ? sub : escapeHtml(sub)}</div>
                     </div>
                   </div>
                   <div class="tier-card-score">${escapeHtml(scoreText)}</div>
