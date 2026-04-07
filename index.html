@@ -26,6 +26,8 @@
       --d: #c7d36f;
       --f: #9aa6c0;
       --na: #707784;
+      --ok: #58d68d;
+      --danger: #ff6b6b;
     }
 
     * { box-sizing: border-box; }
@@ -73,7 +75,8 @@
     }
 
     .view-tab,
-    .tab {
+    .tab,
+    .mini-toggle {
       padding: 8px 14px;
       border-radius: 999px;
       background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
@@ -90,18 +93,25 @@
     }
 
     .view-tab:hover,
-    .tab:hover {
+    .tab:hover,
+    .mini-toggle:hover {
       transform: translateY(-1px) scale(1.02);
       border-color: rgba(255,255,255,0.32);
       box-shadow: inset 0 0 12px rgba(255,255,255,0.06), 0 0 18px rgba(124, 58, 237, 0.18);
     }
 
     .view-tab.active,
-    .tab.active {
+    .tab.active,
+    .mini-toggle.active {
       background: linear-gradient(135deg, var(--red), var(--purple));
       color: #ffffff;
       border: 1px solid rgba(255,255,255,0.18);
       box-shadow: inset 0 0 14px rgba(255,255,255,0.08), 0 0 20px rgba(255, 122, 24, 0.22);
+    }
+
+    .mini-toggle.off {
+      opacity: 0.72;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
     }
 
     .layout {
@@ -229,11 +239,6 @@
       border-radius: 10px;
     }
 
-    .top-name-wrap,
-    .tier-card-text {
-      min-width: 0;
-    }
-
     .top-character,
     .character-name,
     .video-card-text,
@@ -346,7 +351,7 @@
     .rank.rank-2 { color: var(--silver); }
     .rank.rank-3 { color: var(--bronze); }
 
-    .delta.good { color: #58d68d; font-weight: 700; }
+    .delta.good { color: var(--ok); font-weight: 700; }
     .delta.neutral { color: var(--muted); }
 
     .video-header-title {
@@ -462,6 +467,26 @@
       margin-bottom: 10px;
     }
 
+    .overall-controls {
+      display: grid;
+      gap: 10px;
+      padding: 10px 0 14px;
+    }
+
+    .overall-controls-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .overall-controls-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      margin-right: 2px;
+    }
+
     .tier-group {
       border: 1px solid rgba(255,255,255,0.10);
       border-radius: 16px;
@@ -494,7 +519,7 @@
     .tier-C { background: var(--c); }
     .tier-D { background: var(--d); }
     .tier-F { background: var(--f); }
-    .tier-NA { background: var(--na); }
+    .tier-NA { background: var(--na); color: #fff; }
 
     .tier-cards {
       display: grid;
@@ -685,7 +710,9 @@
       selected: null,
       loadingDungeon: false,
       loadingTabs: new Set(),
-      tierActive: "Overall"
+      tierActive: "Overall",
+      overallIncludeNA: false,
+      overallIncludedDungeons: Object.fromEntries(dungeonOrder.map(d => [d, true]))
     };
 
     const titleEl = document.getElementById("title");
@@ -997,6 +1024,10 @@
       return [...set.values()].sort((a,b) => a.char.localeCompare(b.char));
     }
 
+    function getEnabledOverallDungeons() {
+      return dungeonOrder.filter(d => state.overallIncludedDungeons[d]);
+    }
+
     function buildDungeonTierData(dungeon) {
       const rows = state.data[dungeon] || [];
       const groups = Object.fromEntries(TIER_ORDER.map(t => [t, []]));
@@ -1032,8 +1063,16 @@
     function buildOverallTierData() {
       const byCharacter = new Map();
       const characters = allCharacters();
+      const enabledDungeons = getEnabledOverallDungeons();
+      const enabledCount = enabledDungeons.length;
 
-      dungeonOrder.forEach(dungeon => {
+      const groups = Object.fromEntries(TIER_ORDER.map(t => [t, []]));
+
+      if (!enabledCount) {
+        return groups;
+      }
+
+      enabledDungeons.forEach(dungeon => {
         const rows = state.data[dungeon] || [];
         const fieldSize = rows.length;
         if (!fieldSize) return;
@@ -1045,27 +1084,35 @@
           const char = charObj.char;
           const row = rowMap.get(char);
 
-          const rank = row ? parseInt(row.Position, 10) : fieldSize + 1;
-          const rawScore = 1 - ((rank - 1) / denom);
-          const score = scoreFloor50(rawScore);
-
           if (!byCharacter.has(char)) {
             byCharacter.set(char, {
               char,
               iconFile: charObj.iconFile,
               total: 0,
               bestScore: -1,
-              bestRow: row || null,
-              bestDungeon: dungeon,
-              dungeonRanks: {}
+              bestRow: null,
+              bestDungeon: "",
+              dungeonRanks: {},
+              hasMissingEnabledDungeon: false
             });
           }
 
           const item = byCharacter.get(char);
-          item.total += score;
-          item.dungeonRanks[dungeon] = row ? row.Position : "-";
 
-          if (row && score > item.bestScore) {
+          if (!row) {
+            item.hasMissingEnabledDungeon = true;
+            item.dungeonRanks[dungeon] = "-";
+            return;
+          }
+
+          const rank = parseInt(row.Position, 10);
+          const rawScore = 1 - ((rank - 1) / denom);
+          const score = scoreFloor50(rawScore);
+
+          item.total += score;
+          item.dungeonRanks[dungeon] = row.Position;
+
+          if (score > item.bestScore) {
             item.bestScore = score;
             item.bestRow = row;
             item.bestDungeon = dungeon;
@@ -1073,10 +1120,25 @@
         });
       });
 
-      const groups = Object.fromEntries(TIER_ORDER.map(t => [t, []]));
-
       byCharacter.forEach(item => {
-        const finalScore = item.total / dungeonOrder.length;
+        enabledDungeons.forEach(d => {
+          if (!(d in item.dungeonRanks)) {
+            item.hasMissingEnabledDungeon = true;
+            item.dungeonRanks[d] = "-";
+          }
+        });
+
+        if (item.hasMissingEnabledDungeon) {
+          if (state.overallIncludeNA) {
+            groups["N/A"].push({
+              ...item,
+              score: null
+            });
+          }
+          return;
+        }
+
+        const finalScore = item.total / enabledCount;
         const tier = tierFromScore(finalScore);
 
         groups[tier].push({
@@ -1088,7 +1150,53 @@
       return groups;
     }
 
+    function renderOverallControls() {
+      const enabled = getEnabledOverallDungeons();
+
+      return `
+        <div class="overall-controls">
+          <div class="overall-controls-group">
+            <span class="overall-controls-label">Include dungeons:</span>
+            ${dungeonOrder.map(d => `
+              <button type="button" class="mini-toggle ${state.overallIncludedDungeons[d] ? "active" : "off"}" data-overall-dungeon="${escapeHtml(d)}">
+                ${escapeHtml(shortDungeonName(d))}
+              </button>
+            `).join("")}
+          </div>
+          <div class="overall-controls-group">
+            <span class="overall-controls-label">N/A characters:</span>
+            <button type="button" class="mini-toggle ${state.overallIncludeNA ? "active" : "off"}" data-overall-na-toggle="1">
+              ${state.overallIncludeNA ? "Include N/A" : "Exclude N/A"}
+            </button>
+            <span class="overall-controls-label">${enabled.length ? `${enabled.length} dungeon${enabled.length === 1 ? "" : "s"} active` : "No dungeons active"}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function bindOverallControls() {
+      contentAreaEl.querySelectorAll("[data-overall-dungeon]").forEach(el => {
+        el.addEventListener("click", () => {
+          const dungeon = el.getAttribute("data-overall-dungeon");
+          const next = !state.overallIncludedDungeons[dungeon];
+          const currentlyEnabled = getEnabledOverallDungeons().length;
+
+          if (!next && currentlyEnabled === 1) return;
+
+          state.overallIncludedDungeons[dungeon] = next;
+          renderTierView();
+        });
+      });
+
+      contentAreaEl.querySelector("[data-overall-na-toggle]")?.addEventListener("click", () => {
+        state.overallIncludeNA = !state.overallIncludeNA;
+        renderTierView();
+      });
+    }
+
     function renderTierGroups(groups, overall = false) {
+      const enabledOverallDungeons = getEnabledOverallDungeons();
+
       return TIER_ORDER.map(tier => {
         let items = groups[tier] || [];
 
@@ -1110,15 +1218,14 @@
                   let scoreText = "";
 
                   if (tier === "N/A") {
-                    sub = "No run";
+                    sub = overall
+                      ? `<div class="rank-grid">${enabledOverallDungeons.map(d => `<span>${shortDungeonName(d)} (${item.dungeonRanks?.[d] ? "#" + item.dungeonRanks[d] : "-"})</span>`).join("")}</div>`
+                      : "No run";
                     scoreText = "No tracked run";
                   } else if (overall) {
                     sub = `
                       <div class="rank-grid">
-                        <span>V1 (${item.dungeonRanks["Void Invasion"] ? "#" + item.dungeonRanks["Void Invasion"] : "-"})</span>
-                        <span>V2 (${item.dungeonRanks["Void Taint"] ? "#" + item.dungeonRanks["Void Taint"] : "-"})</span>
-                        <span>V3 (${item.dungeonRanks["Void Nightmare"] ? "#" + item.dungeonRanks["Void Nightmare"] : "-"})</span>
-                        <span>ToD (${item.dungeonRanks["Tower of Disappearance"] ? "#" + item.dungeonRanks["Tower of Disappearance"] : "-"})</span>
+                        ${enabledOverallDungeons.map(d => `<span>${shortDungeonName(d)} (${item.dungeonRanks[d] ? "#" + item.dungeonRanks[d] : "-"})</span>`).join("")}
                       </div>
                     `;
                     scoreText = `Score ${(item.score * 100).toFixed(1)}`;
@@ -1128,7 +1235,11 @@
                   }
 
                   return `
-                    <div class="tier-card" data-char="${escapeHtml(item.char)}" data-dungeon="${escapeHtml(overall ? item.bestDungeon : (item.dungeon || ""))}" data-na="${tier === "N/A" ? "1" : "0"}" data-overall="${overall ? "1" : "0"}">
+                    <div class="tier-card"
+                      data-char="${escapeHtml(item.char)}"
+                      data-dungeon="${escapeHtml(overall ? item.bestDungeon || "" : (item.dungeon || ""))}"
+                      data-na="${tier === "N/A" ? "1" : "0"}"
+                      data-overall="${overall ? "1" : "0"}">
                       <div class="tier-card-main">
                         <img class="tier-icon" src="${escapeHtml(item.iconFile || "")}" alt="${escapeHtml(item.char)}" onerror="this.style.display='none'">
                         <div class="tier-card-text">
@@ -1150,8 +1261,6 @@
     function bindTierClicks() {
       contentAreaEl.querySelectorAll(".tier-card").forEach(el => {
         el.addEventListener("click", () => {
-          if (el.dataset.na === "1") return;
-
           const character = el.dataset.char;
           const dungeon = el.dataset.dungeon;
           const isOverall = el.dataset.overall === "1";
@@ -1161,6 +1270,7 @@
             return;
           }
 
+          if (el.dataset.na === "1") return;
           if (!dungeon) return;
           const row = (state.data[dungeon] || []).find(r => r.char === character);
           if (row) selectRow(row, dungeon);
@@ -1170,14 +1280,18 @@
 
     function renderTierView() {
       titleEl.textContent = "Tier Lists";
-      headerMetaEl.textContent = `Overall uses rank-based scoring with a 50-point floor. Dungeon tiers use time proximity to first place with the same 50-point floor. Characters with no dungeon run go into N/A.${lastRefreshText ? ` • ${lastRefreshText}` : ""}`;
+      headerMetaEl.textContent = `Overall tiers use selected dungeons only. Any character missing a selected dungeon goes to N/A.${lastRefreshText ? ` • ${lastRefreshText}` : ""}`;
 
       const tierTabs = ["Overall", ...dungeonOrder];
       const activeTier = state.tierActive || "Overall";
 
       let bodyHtml = "";
       if (activeTier === "Overall") {
-        bodyHtml = renderTierGroups(buildOverallTierData(), true);
+        const overallGroups = buildOverallTierData();
+        bodyHtml = `
+          ${renderOverallControls()}
+          ${renderTierGroups(overallGroups, true)}
+        `;
       } else {
         bodyHtml = renderTierGroups(buildDungeonTierData(activeTier), false);
       }
@@ -1200,11 +1314,23 @@
         });
       });
 
+      if (activeTier === "Overall") {
+        bindOverallControls();
+      }
+
       bindTierClicks();
     }
 
+    function shortDungeonName(d) {
+      if (d === "Void Invasion") return "V1";
+      if (d === "Void Taint") return "V2";
+      if (d === "Void Nightmare") return "V3";
+      if (d === "Tower of Disappearance") return "ToD";
+      return d;
+    }
+
     function renderOverallCharacterVideos(character) {
-      const sections = dungeonOrder.map(dungeon => {
+      const sections = getEnabledOverallDungeons().map(dungeon => {
         const row = (state.data[dungeon] || []).find(r => r.char === character);
 
         if (!row) {
@@ -1233,10 +1359,10 @@
       }).join("");
 
       videoTitleEl.textContent = `${character} • Overall`;
-      videoSubtitleEl.textContent = `All available dungeon runs for this character`;
+      videoSubtitleEl.textContent = `Runs for currently enabled overall dungeons`;
       videoCardEl.innerHTML = "";
       videoAreaEl.className = "";
-      videoAreaEl.innerHTML = `<div class="multi-video-wrap">${sections}</div>`;
+      videoAreaEl.innerHTML = `<div class="multi-video-wrap">${sections || '<div class="multi-video-empty">No enabled dungeons.</div>'}</div>`;
       videoActionsEl.style.display = "none";
       videoExtraEl.innerHTML = "";
     }
