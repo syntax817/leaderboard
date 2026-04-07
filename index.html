@@ -1065,25 +1065,25 @@
       const characters = allCharacters();
       const enabledDungeons = getEnabledOverallDungeons();
       const enabledCount = enabledDungeons.length;
-
+    
       const groups = Object.fromEntries(TIER_ORDER.map(t => [t, []]));
-
+    
       if (!enabledCount) {
         return groups;
       }
-
+    
       enabledDungeons.forEach(dungeon => {
         const rows = state.data[dungeon] || [];
         const fieldSize = rows.length;
         if (!fieldSize) return;
-
+    
         const denom = Math.max(fieldSize - 1, 1);
         const rowMap = new Map(rows.map(r => [r.char, r]));
-
+    
         characters.forEach(charObj => {
           const char = charObj.char;
           const row = rowMap.get(char);
-
+    
           if (!byCharacter.has(char)) {
             byCharacter.set(char, {
               char,
@@ -1096,22 +1096,28 @@
               hasMissingEnabledDungeon: false
             });
           }
-
+    
           const item = byCharacter.get(char);
-
+    
           if (!row) {
             item.hasMissingEnabledDungeon = true;
             item.dungeonRanks[dungeon] = "-";
+    
+            // INCLUDE N/A = still calculate score with next-place penalty
+            const rank = fieldSize + 1;
+            const rawScore = 1 - ((rank - 1) / denom);
+            const score = scoreFloor50(rawScore);
+            item.total += score;
             return;
           }
-
+    
           const rank = parseInt(row.Position, 10);
           const rawScore = 1 - ((rank - 1) / denom);
           const score = scoreFloor50(rawScore);
-
+    
           item.total += score;
           item.dungeonRanks[dungeon] = row.Position;
-
+    
           if (score > item.bestScore) {
             item.bestScore = score;
             item.bestRow = row;
@@ -1119,7 +1125,7 @@
           }
         });
       });
-
+    
       byCharacter.forEach(item => {
         enabledDungeons.forEach(d => {
           if (!(d in item.dungeonRanks)) {
@@ -1127,26 +1133,26 @@
             item.dungeonRanks[d] = "-";
           }
         });
-
-        if (item.hasMissingEnabledDungeon) {
-          if (state.overallIncludeNA) {
-            groups["N/A"].push({
-              ...item,
-              score: null
-            });
-          }
+    
+        const finalScore = item.total / enabledCount;
+    
+        // EXCLUDE N/A = missing any enabled dungeon goes to N/A
+        if (!state.overallIncludeNA && item.hasMissingEnabledDungeon) {
+          groups["N/A"].push({
+            ...item,
+            score: null
+          });
           return;
         }
-
-        const finalScore = item.total / enabledCount;
+    
         const tier = tierFromScore(finalScore);
-
+    
         groups[tier].push({
           ...item,
           score: finalScore
         });
       });
-
+    
       return groups;
     }
 
