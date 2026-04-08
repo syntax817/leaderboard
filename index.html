@@ -145,6 +145,8 @@
       color: var(--muted);
       font-size: 14px;
       margin-top: 4px;
+      white-space: normal;
+      word-break: break-word;
     }
 
     .top-three {
@@ -291,7 +293,8 @@
 
     .table-wrap {
       padding: 0 12px 12px;
-      overflow-x: hidden;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     table {
@@ -375,6 +378,7 @@
 
     .rules-list li {
       margin: 0 0 10px;
+      word-break: break-word;
     }
 
     .rules-list li:last-child {
@@ -391,6 +395,8 @@
       color: var(--muted);
       font-size: 14px;
       line-height: 1.4;
+      white-space: normal;
+      word-break: break-word;
     }
 
     .video-card {
@@ -401,6 +407,8 @@
       color: var(--muted);
       font-size: 14px;
       margin-top: 6px;
+      white-space: normal;
+      word-break: break-word;
     }
 
     .video-frame-wrap {
@@ -444,6 +452,8 @@
       color: var(--muted);
       font-size: 14px;
       line-height: 1.5;
+      white-space: normal;
+      word-break: break-word;
     }
 
     .multi-video-wrap {
@@ -462,12 +472,16 @@
     .multi-video-block h3 {
       margin: 0 0 8px;
       font-size: 18px;
+      white-space: normal;
+      word-break: break-word;
     }
 
     .multi-video-meta {
       color: var(--muted);
       font-size: 13px;
       margin-bottom: 10px;
+      white-space: normal;
+      word-break: break-word;
     }
 
     .multi-video-frame {
@@ -481,6 +495,8 @@
     .multi-video-empty {
       color: var(--muted);
       padding: 14px 0;
+      white-space: normal;
+      word-break: break-word;
     }
 
     .tier-wrap {
@@ -492,6 +508,8 @@
       font-size: 14px;
       line-height: 1.5;
       margin-bottom: 10px;
+      white-space: normal;
+      word-break: break-word;
     }
 
     .overall-controls {
@@ -576,6 +594,7 @@
       margin-top: 6px;
       white-space: normal;
       line-height: 1.4;
+      word-break: break-word;
     }
 
     .rank-grid {
@@ -657,9 +676,24 @@
       to { transform: rotate(360deg); }
     }
 
-    @media (max-width: 1200px) {
+    @media (max-width: 900px) {
+      .container {
+        width: min(100%, calc(100% - 20px));
+        padding: 14px 0 28px;
+      }
+
+      h1 {
+        font-size: 32px;
+        line-height: 1.05;
+      }
+
+      .subtitle {
+        font-size: 14px;
+      }
+
       .layout {
         grid-template-columns: 1fr;
+        gap: 14px;
       }
 
       .top-three {
@@ -669,15 +703,137 @@
       .video-frame,
       .video-skeleton,
       .multi-video-frame {
-        min-height: 360px;
+        min-height: 220px;
       }
 
       .placeholder {
-        min-height: 260px;
+        min-height: 180px;
+        padding: 24px 16px;
       }
 
       .tier-header {
-        grid-template-columns: 84px 1fr;
+        grid-template-columns: 70px 1fr;
+      }
+
+      .tier-label {
+        font-size: 22px;
+      }
+
+      .tier-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .tabs,
+      .view-tabs,
+      .overall-controls-group {
+        gap: 8px;
+      }
+
+      .tab,
+      .view-tab,
+      .mini-toggle {
+        padding: 7px 11px;
+        font-size: 13px;
+      }
+
+      table {
+        table-layout: auto;
+      }
+
+      col.col-pos,
+      col.col-character,
+      col.col-player,
+      col.col-time,
+      col.col-date,
+      col.col-gap {
+        width: auto;
+      }
+
+      th,
+      td {
+        padding: 10px 8px;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+        word-break: break-word;
+      }
+
+      td:nth-child(1),
+      td:nth-child(4),
+      td:nth-child(6),
+      th:nth-child(1),
+      th:nth-child(4),
+      th:nth-child(6) {
+        white-space: nowrap;
+      }
+
+      .character-name,
+      .player-name,
+      .top-character,
+      .top-player,
+      .video-card-text,
+      .video-card-player,
+      .tier-card-name,
+      .tier-card-sub {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+        word-break: break-word;
+      }
+
+      .rank-grid {
+        grid-template-columns: 1fr;
+        gap: 3px;
+      }
+
+      .rank-grid span {
+        white-space: normal;
+      }
+
+      .rules-list {
+        padding-left: 16px;
+      }
+
+      .overall-controls {
+        gap: 8px;
+      }
+
+      .overall-controls-group {
+        align-items: flex-start;
+      }
+
+      .overall-controls-label {
+        width: 100%;
+        margin-bottom: 2px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      th:nth-child(6),
+      td:nth-child(6) {
+        display: none;
+      }
+
+      .multi-video-wrap,
+      .video-frame-wrap,
+      .rules-area,
+      .tier-wrap {
+        padding: 12px;
+      }
+
+      .multi-video-block {
+        padding: 10px;
+      }
+
+      .multi-video-block h3 {
+        font-size: 16px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      th:nth-child(5),
+      td:nth-child(5) {
+        display: none;
       }
     }
   </style>
@@ -741,7 +897,7 @@
       "Please show all the stats displayed in the scoreboard or type them in the video description so I can analyze the data",
       "In case you don't have any GC clubs, guild attack pot is allowed. If you use guild pot while having single GC club, use 5% = 27% cdmg and check in the cap below if your run is valid.",
       "For stick coordi, turtle shell, and other temporary items' extra stats compared to perma BIS, use 555atk = 6,37%MPr conversion rate and add the resulting attack in your atk+spa. If it surpasses 8.2, the run is invalid.",
-      "Cdmg caps: 1090% for crit chance build, 1105% for cdmg build. Veigas can keep his +30% cdmg passive without any issues (add +30% cdmg to the cap if using the passive). Unless proven you can get higher cdmg naturally, surpassing these gaps makes your run invalid."
+      "Cdmg caps: 1090% for crit chance build, 1105% for cdmg build. Veigas can keep his +30% cdmg passive without any issues (add +30% cdmg to the cap). Unless proven you can get higher cdmg naturally, surpassing these gaps makes your run invalid."
     ];
 
     const DUNGEON_RULES = {
