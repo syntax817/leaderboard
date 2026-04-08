@@ -294,7 +294,7 @@
 
     .leaderboard-with-timeline {
       display: grid;
-      grid-template-columns: 72px 1fr;
+      grid-template-columns: 92px 1fr;
       gap: 0;
       align-items: start;
     }
@@ -302,23 +302,46 @@
     .side-timeline {
       position: relative;
       padding: 54px 0 12px;
-      margin-left: 6px;
-      min-height: 520px;
+      margin-left: 0;
     }
 
     .side-timeline-line {
       position: absolute;
-      top: 54px;
-      bottom: 18px;
-      left: 28px;
+      left: 64px;
       width: 4px;
       border-radius: 999px;
       background: linear-gradient(180deg, #5ecbff, #19d3ff);
     }
 
+    .side-timeline-marker {
+      position: absolute;
+      left: 0;
+      width: 68px;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .side-timeline-marker-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #d8e6ff;
+      white-space: nowrap;
+    }
+
+    .side-timeline-marker-tick {
+      width: 10px;
+      height: 2px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.75);
+    }
+
     .side-timeline-node {
       position: absolute;
-      left: 28px;
+      left: 64px;
       transform: translate(-50%, -50%);
       width: 44px;
       height: 44px;
@@ -344,24 +367,6 @@
 
     .side-timeline-node.active {
       box-shadow: 0 0 0 3px rgba(124,58,237,.35), 0 0 18px rgba(124,58,237,.35);
-    }
-
-    .side-timeline-top-label,
-    .side-timeline-bottom-label {
-      position: absolute;
-      left: 56px;
-      font-size: 12px;
-      font-weight: 800;
-      color: #d8e6ff;
-      white-space: nowrap;
-    }
-
-    .side-timeline-top-label {
-      top: 34px;
-    }
-
-    .side-timeline-bottom-label {
-      bottom: 0;
     }
 
     .table-wrap {
@@ -881,22 +886,30 @@
       }
 
       .leaderboard-with-timeline {
-        grid-template-columns: 56px 1fr;
+        grid-template-columns: 74px 1fr;
       }
 
       .side-timeline-line {
-        left: 22px;
+        left: 50px;
       }
 
       .side-timeline-node {
-        left: 22px;
+        left: 50px;
         width: 34px;
         height: 34px;
       }
 
-      .side-timeline-top-label,
-      .side-timeline-bottom-label {
-        display: none;
+      .side-timeline-marker {
+        width: 54px;
+        gap: 6px;
+      }
+
+      .side-timeline-marker-label {
+        font-size: 10px;
+      }
+
+      .side-timeline-marker-tick {
+        width: 8px;
       }
     }
 
@@ -1002,7 +1015,7 @@
 
     const DUNGEON_RULES = {
       "Tower of Disappearance": [
-        "Lisnar Blessing is banned if you already have GC or PGC"
+        "In ToD, Lisnar Blessing is banned"
       ]
     };
 
@@ -1097,6 +1110,13 @@
       if (parts.length === 2 && !parts.some(Number.isNaN)) return parts[0] * 60 + parts[1];
       if (parts.length === 3 && !parts.some(Number.isNaN)) return parts[0] * 3600 + parts[1] * 60 + parts[2];
       return Infinity;
+    }
+
+    function formatSec(sec) {
+      const total = Math.round(sec);
+      const mm = Math.floor(total / 60);
+      const ss = String(total % 60).padStart(2, "0");
+      return `${mm}:${ss}`;
     }
 
     function normalizeCharacterName(raw) {
@@ -1289,22 +1309,44 @@
       const maxSec = rows[rows.length - 1].sec;
       const range = Math.max(maxSec - minSec, 1);
 
+      const usableHeight = Math.max(420, (rows.length - 1) * 56);
+      const totalHeight = usableHeight + 90;
+
       const nodes = rows.map(row => {
         const pct = rows.length === 1 ? 0 : ((row.sec - minSec) / range) * 100;
-        return { row, pct };
+        return {
+          row,
+          pct,
+          top: 54 + (pct / 100) * usableHeight
+        };
+      });
+
+      const markerCount = Math.min(8, Math.max(4, rows.length));
+      const markers = Array.from({ length: markerCount }, (_, i) => {
+        const pct = markerCount === 1 ? 0 : i / (markerCount - 1);
+        const sec = minSec + (range * pct);
+        return {
+          label: formatSec(sec),
+          top: 54 + pct * usableHeight
+        };
       });
 
       return `
-        <div class="side-timeline">
-          <div class="side-timeline-line"></div>
-          <div class="side-timeline-top-label">${escapeHtml(rows[0].Time)}</div>
-          <div class="side-timeline-bottom-label">${escapeHtml(rows[rows.length - 1].Time)}</div>
+        <div class="side-timeline" style="min-height:${totalHeight}px;">
+          <div class="side-timeline-line" style="top:54px;height:${usableHeight}px;"></div>
+
+          ${markers.map(marker => `
+            <div class="side-timeline-marker" style="top:${marker.top}px;">
+              <span class="side-timeline-marker-label">${escapeHtml(marker.label)}</span>
+              <span class="side-timeline-marker-tick"></span>
+            </div>
+          `).join("")}
 
           ${nodes.map(node => `
             <div
               class="side-timeline-node ${state.selected && state.selected.dungeon === state.active && state.selected.rowKey === makeRowKey(node.row) ? "active" : ""}"
               data-row-key="${escapeHtml(makeRowKey(node.row))}"
-              style="top:${54 + (node.pct * 420 / 100)}px;"
+              style="top:${node.top}px;"
             >
               <img src="${escapeHtml(node.row.iconFile)}" alt="${escapeHtml(node.row.char)}" onerror="this.parentElement.style.display='none'">
             </div>
