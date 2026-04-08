@@ -209,7 +209,8 @@
     .top-icon,
     .character-icon,
     .video-card-icon,
-    .tier-icon {
+    .tier-icon,
+    .timeline-icon {
       object-fit: cover;
       flex: 0 0 auto;
       border: 1px solid rgba(255,255,255,0.16);
@@ -289,6 +290,123 @@
 
     .tab.loading .tab-spinner {
       display: inline-block;
+    }
+
+    .timeline-wrap {
+      padding: 8px 16px 14px;
+    }
+
+    .timeline-title {
+      font-size: 15px;
+      font-weight: 800;
+      margin: 0 0 10px;
+      color: var(--text);
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .timeline-shell {
+      position: relative;
+      padding-top: 34px;
+      padding-bottom: 90px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .timeline-track {
+      position: relative;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #5ecbff, #19d3ff);
+      min-width: 720px;
+    }
+
+    .timeline-endcap {
+      position: absolute;
+      top: -4px;
+      width: 2px;
+      height: 14px;
+      background: #9fe8ff;
+      border-radius: 2px;
+    }
+
+    .timeline-endcap.start { left: 0; }
+    .timeline-endcap.end { right: 0; }
+
+    .timeline-tick {
+      position: absolute;
+      top: -18px;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .timeline-tick-line {
+      width: 2px;
+      height: 10px;
+      background: rgba(255,255,255,.7);
+      margin: 0 auto 4px;
+      border-radius: 2px;
+    }
+
+    .timeline-tick-label {
+      font-size: 12px;
+      color: #d8e6ff;
+      font-weight: 700;
+    }
+
+    .timeline-node {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      cursor: pointer;
+      width: 54px;
+      text-align: center;
+    }
+
+    .timeline-node:hover .timeline-icon {
+      transform: scale(1.06);
+      box-shadow: 0 0 16px rgba(255,255,255,.18);
+    }
+
+    .timeline-node:hover .timeline-name {
+      color: #fff;
+    }
+
+    .timeline-drop {
+      width: 2px;
+      background: rgba(255,255,255,.65);
+      margin: 0 auto;
+      border-radius: 2px;
+    }
+
+    .timeline-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: block;
+      margin: 8px auto 6px;
+      border: 2px solid rgba(255,255,255,.92);
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .timeline-name {
+      font-size: 12px;
+      line-height: 1.15;
+      font-weight: 800;
+      color: var(--text);
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .timeline-time {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-top: 2px;
+      white-space: nowrap;
     }
 
     .table-wrap {
@@ -806,6 +924,18 @@
         width: 100%;
         margin-bottom: 2px;
       }
+
+      .timeline-shell {
+        padding-bottom: 110px;
+      }
+
+      .timeline-node {
+        width: 64px;
+      }
+
+      .timeline-name {
+        font-size: 11px;
+      }
     }
 
     @media (max-width: 700px) {
@@ -841,7 +971,7 @@
 <body>
   <div class="container">
     <h1>Grand Chase Leaderboards</h1>
-    <div class="subtitle">Speedrun rankings • Click any row or tier card to watch the run</div>
+    <div class="subtitle">Speedrun rankings • Click any row, timeline icon, or tier card to watch the run</div>
 
     <div class="view-tabs">
       <button type="button" class="view-tab active" id="viewLeaderboard">Leaderboard</button>
@@ -869,7 +999,7 @@
         <div class="video-panel">
           <div class="video-header">
             <div class="video-header-title" id="videoTitle">Select a run</div>
-            <div class="video-subtitle" id="videoSubtitle">Choose any leaderboard row or tier card to embed the video here.</div>
+            <div class="video-subtitle" id="videoSubtitle">Choose any leaderboard row, timeline icon, or tier card to embed the video here.</div>
           </div>
           <div id="videoCard"></div>
           <div id="videoArea" class="placeholder">No video selected</div>
@@ -1088,6 +1218,74 @@
       return [...set.values()].sort((a,b) => a.char.localeCompare(b.char));
     }
 
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function buildTimelineNodes(rows) {
+      if (!rows.length) return [];
+
+      const minSec = rows[0].sec;
+      const maxSec = rows[rows.length - 1].sec;
+      const range = Math.max(maxSec - minSec, 1);
+
+      const laneGap = 60;
+      const placed = [];
+
+      return rows.map(row => {
+        const pct = ((row.sec - minSec) / range) * 100;
+        let lane = 0;
+
+        while (true) {
+          const conflict = placed.some(p => p.lane === lane && Math.abs(p.pct - pct) < 3.2);
+          if (!conflict) break;
+          lane++;
+        }
+
+        placed.push({ pct, lane });
+        return { row, pct, lane, y: lane * laneGap };
+      });
+    }
+
+    function renderTimeline(rows) {
+      if (!rows || !rows.length) return "";
+
+      const nodes = buildTimelineNodes(rows);
+      const minSec = rows[0].sec;
+      const maxSec = rows[rows.length - 1].sec;
+
+      return `
+        <div class="timeline-wrap">
+          <div class="timeline-title">Speedrun Timeline (${escapeHtml(rows[0].Time)} → ${escapeHtml(rows[rows.length - 1].Time)})</div>
+          <div class="timeline-shell">
+            <div class="timeline-track">
+              <div class="timeline-endcap start"></div>
+              <div class="timeline-endcap end"></div>
+
+              ${rows.map(r => {
+                const pct = rows.length === 1 ? 0 : ((r.sec - minSec) / Math.max(maxSec - minSec, 1)) * 100;
+                return `
+                  <div class="timeline-tick" style="left:${pct}%;">
+                    <div class="timeline-tick-label">${escapeHtml(r.Time)}</div>
+                    <div class="timeline-tick-line"></div>
+                  </div>
+                `;
+              }).join("")}
+
+              ${nodes.map(node => `
+                <div class="timeline-node" data-row-key="${escapeHtml(makeRowKey(node.row))}" style="left:${clamp(node.pct, 0, 100)}%; top:0;">
+                  <div class="timeline-drop" style="height:${26 + node.y}px;"></div>
+                  <img class="timeline-icon" src="${escapeHtml(node.row.iconFile)}" alt="${escapeHtml(node.row.char)}" onerror="this.style.display='none'">
+                  <div class="timeline-name">${escapeHtml(node.row.char)}</div>
+                  <div class="timeline-time">${escapeHtml(node.row.Time)}</div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     function renderViewTabs() {
       viewLeaderboardEl.className = "view-tab" + (state.view === "leaderboard" ? " active" : "");
       viewTierEl.className = "view-tab" + (state.view === "tier" ? " active" : "");
@@ -1218,6 +1416,7 @@
       contentAreaEl.innerHTML = `
         ${renderTopThree(rows)}
         ${renderDungeonTabs()}
+        ${renderTimeline(rows)}
         <div class="table-wrap">
           <table>
             <colgroup>
@@ -1254,6 +1453,15 @@
 
       bindDungeonTabs();
       bindTopThree(rows);
+
+      contentAreaEl.querySelectorAll(".timeline-node").forEach(el => {
+        el.addEventListener("click", () => {
+          const key = el.getAttribute("data-row-key");
+          const row = rows.find(r => makeRowKey(r) === key);
+          if (row) selectRow(row, state.active);
+        });
+      });
+
       contentAreaEl.querySelectorAll("tbody tr").forEach(el => {
         el.addEventListener("click", () => {
           const key = el.getAttribute("data-row-key");
@@ -1612,7 +1820,7 @@
 
       if (!state.selected || !state.selected.row) {
         videoTitleEl.textContent = "Select a run";
-        videoSubtitleEl.textContent = "Choose any leaderboard row or tier card to embed the video here.";
+        videoSubtitleEl.textContent = "Choose any leaderboard row, timeline icon, or tier card to embed the video here.";
         videoCardEl.innerHTML = "";
         videoAreaEl.className = "placeholder";
         videoAreaEl.innerHTML = "No video selected";
