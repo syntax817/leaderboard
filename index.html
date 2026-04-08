@@ -27,7 +27,6 @@
       --f: #9aa6c0;
       --na: #707784;
       --ok: #58d68d;
-      --danger: #ff6b6b;
     }
 
     * { box-sizing: border-box; }
@@ -302,11 +301,11 @@
     }
 
     col.col-pos { width: 72px; }
-    col.col-character { width: 30%; }
-    col.col-player { width: 22%; }
-    col.col-time { width: 16%; }
-    col.col-date { width: 16%; }
-    col.col-gap { width: 16%; }
+    col.col-character { width: 32%; }
+    col.col-player { width: 20%; }
+    col.col-time { width: 12%; }
+    col.col-date { width: 18%; }
+    col.col-gap { width: 18%; }
 
     th, td {
       padding: 12px;
@@ -353,6 +352,34 @@
 
     .delta.good { color: var(--ok); font-weight: 700; }
     .delta.neutral { color: var(--muted); }
+
+    .video-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .rules-panel {
+      overflow: hidden;
+    }
+
+    .rules-area {
+      padding: 14px 16px 18px;
+    }
+
+    .rules-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .rules-list li {
+      margin: 0 0 10px;
+    }
+
+    .rules-list li:last-child {
+      margin-bottom: 0;
+    }
 
     .video-header-title {
       font-size: 22px;
@@ -652,8 +679,6 @@
       .tier-header {
         grid-template-columns: 84px 1fr;
       }
-
-      col.col-gap { width: 18%; }
     }
   </style>
 </head>
@@ -676,18 +701,28 @@
         <div id="contentArea"></div>
       </div>
 
-      <div class="video-panel">
-        <div class="video-header">
-          <div class="video-header-title" id="videoTitle">Select a run</div>
-          <div class="video-subtitle" id="videoSubtitle">Choose any leaderboard row or tier card to embed the video here.</div>
+      <div class="video-stack">
+        <div class="video-panel rules-panel">
+          <div class="video-header">
+            <div class="video-header-title">Speedrun Rules</div>
+            <div class="video-subtitle" id="rulesSubtitle">General rules for all dungeons</div>
+          </div>
+          <div id="rulesArea" class="rules-area"></div>
         </div>
-        <div id="videoCard"></div>
-        <div id="videoArea" class="placeholder">No video selected</div>
-        <div class="video-actions" id="videoActions" style="display:none;">
-          <a class="action-btn" id="youtubeButton" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
-          <button class="action-btn" id="copyButton" type="button">Copy video link</button>
+
+        <div class="video-panel">
+          <div class="video-header">
+            <div class="video-header-title" id="videoTitle">Select a run</div>
+            <div class="video-subtitle" id="videoSubtitle">Choose any leaderboard row or tier card to embed the video here.</div>
+          </div>
+          <div id="videoCard"></div>
+          <div id="videoArea" class="placeholder">No video selected</div>
+          <div class="video-actions" id="videoActions" style="display:none;">
+            <a class="action-btn" id="youtubeButton" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
+            <button class="action-btn" id="copyButton" type="button">Copy video link</button>
+          </div>
+          <div class="video-extra" id="videoExtra"></div>
         </div>
-        <div class="video-extra" id="videoExtra"></div>
       </div>
     </div>
   </div>
@@ -698,6 +733,21 @@
       "Void Taint": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=1202569298&single=true&output=csv",
       "Void Nightmare": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=288867483&single=true&output=csv",
       "Tower of Disappearance": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=1230006600&single=true&output=csv"
+    };
+
+    const GENERAL_RULES = [
+      "No pot, no quote runs",
+      "Glitches like bubble skip in V1 are valid until KOG fixes them, as they're only tournament banned",
+      "Please show all the stats displayed in the scoreboard or type them in the video description so I can analyze the data",
+      "In case you don't have any GC clubs, guild attack pot is allowed. If you use guild pot while having single GC club, use 5% = 27% cdmg and check in the cap below if your run is valid.",
+      "For stick coordi, turtle shell, and other temporary items' extra stats compared to perma BIS, use 555atk = 6,37%MPr conversion rate and add the resulting attack in your atk+spa. If it surpasses 8.2, the run is invalid.",
+      "Cdmg caps: 1090% for crit chance build, 1105% for cdmg build. Veigas can keep his +30% cdmg passive without any issues (add +30% cdmg to the cap if using the passive). Unless proven you can get higher cdmg naturally, surpassing these gaps makes your run invalid."
+    ];
+
+    const DUNGEON_RULES = {
+      "Tower of Disappearance": [
+        "In ToD, Lisnar Blessing is banned"
+      ]
     };
 
     const TIER_ORDER = ["SS","S","A","B","C","D","F","N/A"];
@@ -728,6 +778,8 @@
     const videoExtraEl = document.getElementById("videoExtra");
     const viewLeaderboardEl = document.getElementById("viewLeaderboard");
     const viewTierEl = document.getElementById("viewTier");
+    const rulesSubtitleEl = document.getElementById("rulesSubtitle");
+    const rulesAreaEl = document.getElementById("rulesArea");
     let lastRefreshText = "";
 
     function escapeHtml(value) {
@@ -843,6 +895,43 @@
       renderVideo();
     }
 
+    function scoreFloor50(raw) {
+      const clamped = Math.max(0, Math.min(1, raw));
+      return 0.5 + (clamped * 0.5);
+    }
+
+    function tierFromScore(s) {
+      if (s >= 0.96) return "SS";
+      if (s >= 0.91) return "S";
+      if (s >= 0.84) return "A";
+      if (s >= 0.77) return "B";
+      if (s >= 0.70) return "C";
+      if (s >= 0.63) return "D";
+      return "F";
+    }
+
+    function shortDungeonName(d) {
+      if (d === "Void Invasion") return "V1";
+      if (d === "Void Taint") return "V2";
+      if (d === "Void Nightmare") return "V3";
+      if (d === "Tower of Disappearance") return "ToD";
+      return d;
+    }
+
+    function getEnabledOverallDungeons() {
+      return dungeonOrder.filter(d => state.overallIncludedDungeons[d]);
+    }
+
+    function allCharacters() {
+      const set = new Map();
+      dungeonOrder.forEach(d => {
+        (state.data[d] || []).forEach(r => {
+          if (!set.has(r.char)) set.set(r.char, { char: r.char, iconFile: r.iconFile });
+        });
+      });
+      return [...set.values()].sort((a,b) => a.char.localeCompare(b.char));
+    }
+
     function renderViewTabs() {
       viewLeaderboardEl.className = "view-tab" + (state.view === "leaderboard" ? " active" : "");
       viewTierEl.className = "view-tab" + (state.view === "tier" ? " active" : "");
@@ -882,6 +971,25 @@
           renderVideo();
         });
       });
+    }
+
+    function renderRules() {
+      const dungeon = state.view === "leaderboard"
+        ? state.active
+        : (state.tierActive && state.tierActive !== "Overall" ? state.tierActive : state.active);
+
+      const dungeonSpecificRules = DUNGEON_RULES[dungeon] || [];
+      const allRules = [...GENERAL_RULES, ...dungeonSpecificRules];
+
+      rulesSubtitleEl.textContent = dungeonSpecificRules.length
+        ? `${dungeon} rules`
+        : "General rules for all dungeons";
+
+      rulesAreaEl.innerHTML = `
+        <ul class="rules-list">
+          ${allRules.map(rule => `<li>${escapeHtml(rule)}</li>`).join("")}
+        </ul>
+      `;
     }
 
     function renderTopThree(rows) {
@@ -999,35 +1107,6 @@
       });
     }
 
-    function scoreFloor50(raw) {
-      const clamped = Math.max(0, Math.min(1, raw));
-      return 0.5 + (clamped * 0.5);
-    }
-
-    function tierFromScore(s) {
-      if (s >= 0.96) return "SS";
-      if (s >= 0.91) return "S";
-      if (s >= 0.84) return "A";
-      if (s >= 0.77) return "B";
-      if (s >= 0.70) return "C";
-      if (s >= 0.63) return "D";
-      return "F";
-    }
-
-    function allCharacters() {
-      const set = new Map();
-      dungeonOrder.forEach(d => {
-        (state.data[d] || []).forEach(r => {
-          if (!set.has(r.char)) set.set(r.char, { char: r.char, iconFile: r.iconFile });
-        });
-      });
-      return [...set.values()].sort((a,b) => a.char.localeCompare(b.char));
-    }
-
-    function getEnabledOverallDungeons() {
-      return dungeonOrder.filter(d => state.overallIncludedDungeons[d]);
-    }
-
     function buildDungeonTierData(dungeon) {
       const rows = state.data[dungeon] || [];
       const groups = Object.fromEntries(TIER_ORDER.map(t => [t, []]));
@@ -1065,25 +1144,22 @@
       const characters = allCharacters();
       const enabledDungeons = getEnabledOverallDungeons();
       const enabledCount = enabledDungeons.length;
-    
+
       const groups = Object.fromEntries(TIER_ORDER.map(t => [t, []]));
-    
-      if (!enabledCount) {
-        return groups;
-      }
-    
+      if (!enabledCount) return groups;
+
       enabledDungeons.forEach(dungeon => {
         const rows = state.data[dungeon] || [];
         const fieldSize = rows.length;
         if (!fieldSize) return;
-    
+
         const denom = Math.max(fieldSize - 1, 1);
         const rowMap = new Map(rows.map(r => [r.char, r]));
-    
+
         characters.forEach(charObj => {
           const char = charObj.char;
           const row = rowMap.get(char);
-    
+
           if (!byCharacter.has(char)) {
             byCharacter.set(char, {
               char,
@@ -1096,28 +1172,29 @@
               hasMissingEnabledDungeon: false
             });
           }
-    
+
           const item = byCharacter.get(char);
-    
+
           if (!row) {
             item.hasMissingEnabledDungeon = true;
             item.dungeonRanks[dungeon] = "-";
-    
-            // INCLUDE N/A = still calculate score with next-place penalty
-            const rank = fieldSize + 1;
-            const rawScore = 1 - ((rank - 1) / denom);
-            const score = scoreFloor50(rawScore);
-            item.total += score;
+
+            if (state.overallIncludeNA) {
+              const rank = fieldSize + 1;
+              const rawScore = 1 - ((rank - 1) / denom);
+              const score = scoreFloor50(rawScore);
+              item.total += score;
+            }
             return;
           }
-    
+
           const rank = parseInt(row.Position, 10);
           const rawScore = 1 - ((rank - 1) / denom);
           const score = scoreFloor50(rawScore);
-    
+
           item.total += score;
           item.dungeonRanks[dungeon] = row.Position;
-    
+
           if (score > item.bestScore) {
             item.bestScore = score;
             item.bestRow = row;
@@ -1125,7 +1202,7 @@
           }
         });
       });
-    
+
       byCharacter.forEach(item => {
         enabledDungeons.forEach(d => {
           if (!(d in item.dungeonRanks)) {
@@ -1133,10 +1210,7 @@
             item.dungeonRanks[d] = "-";
           }
         });
-    
-        const finalScore = item.total / enabledCount;
-    
-        // EXCLUDE N/A = missing any enabled dungeon goes to N/A
+
         if (!state.overallIncludeNA && item.hasMissingEnabledDungeon) {
           groups["N/A"].push({
             ...item,
@@ -1144,15 +1218,16 @@
           });
           return;
         }
-    
+
+        const finalScore = item.total / enabledCount;
         const tier = tierFromScore(finalScore);
-    
+
         groups[tier].push({
           ...item,
           score: finalScore
         });
       });
-    
+
       return groups;
     }
 
@@ -1170,9 +1245,9 @@
             `).join("")}
           </div>
           <div class="overall-controls-group">
-            <span class="overall-controls-label">N/A characters:</span>
+            <span class="overall-controls-label">Missing runs:</span>
             <button type="button" class="mini-toggle ${state.overallIncludeNA ? "active" : "off"}" data-overall-na-toggle="1">
-              ${state.overallIncludeNA ? "Include N/A" : "Exclude N/A"}
+              ${state.overallIncludeNA ? "Include in score" : "Move to N/A"}
             </button>
             <span class="overall-controls-label">${enabled.length ? `${enabled.length} dungeon${enabled.length === 1 ? "" : "s"} active` : "No dungeons active"}</span>
           </div>
@@ -1186,9 +1261,7 @@
           const dungeon = el.getAttribute("data-overall-dungeon");
           const next = !state.overallIncludedDungeons[dungeon];
           const currentlyEnabled = getEnabledOverallDungeons().length;
-
           if (!next && currentlyEnabled === 1) return;
-
           state.overallIncludedDungeons[dungeon] = next;
           renderTierView();
         });
@@ -1286,7 +1359,7 @@
 
     function renderTierView() {
       titleEl.textContent = "Tier Lists";
-      headerMetaEl.textContent = `Overall tiers use selected dungeons only. Any character missing a selected dungeon goes to N/A.${lastRefreshText ? ` • ${lastRefreshText}` : ""}`;
+      headerMetaEl.textContent = `Overall uses selected dungeons only. Missing runs can either move a character to N/A or stay included in scoring.${lastRefreshText ? ` • ${lastRefreshText}` : ""}`;
 
       const tierTabs = ["Overall", ...dungeonOrder];
       const activeTier = state.tierActive || "Overall";
@@ -1320,19 +1393,8 @@
         });
       });
 
-      if (activeTier === "Overall") {
-        bindOverallControls();
-      }
-
+      if (activeTier === "Overall") bindOverallControls();
       bindTierClicks();
-    }
-
-    function shortDungeonName(d) {
-      if (d === "Void Invasion") return "V1";
-      if (d === "Void Taint") return "V2";
-      if (d === "Void Nightmare") return "V3";
-      if (d === "Tower of Disappearance") return "ToD";
-      return d;
     }
 
     function renderOverallCharacterVideos(character) {
@@ -1375,6 +1437,7 @@
 
     function render() {
       renderViewTabs();
+      renderRules();
       if (state.view === "leaderboard") renderLeaderboardView();
       else renderTierView();
     }
