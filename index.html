@@ -294,7 +294,7 @@
 
     .leaderboard-with-timeline {
       display: grid;
-      grid-template-columns: 92px 1fr;
+      grid-template-columns: 112px 1fr;
       gap: 0;
       align-items: start;
     }
@@ -307,7 +307,7 @@
 
     .side-timeline-line {
       position: absolute;
-      left: 64px;
+      left: 76px;
       width: 4px;
       border-radius: 999px;
       background: linear-gradient(180deg, #5ecbff, #19d3ff);
@@ -316,12 +316,12 @@
     .side-timeline-marker {
       position: absolute;
       left: 0;
-      width: 68px;
+      width: 78px;
       transform: translateY(-50%);
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      gap: 8px;
+      gap: 10px;
       pointer-events: none;
     }
 
@@ -341,7 +341,6 @@
 
     .side-timeline-node {
       position: absolute;
-      left: 64px;
       transform: translate(-50%, -50%);
       width: 44px;
       height: 44px;
@@ -886,21 +885,20 @@
       }
 
       .leaderboard-with-timeline {
-        grid-template-columns: 74px 1fr;
+        grid-template-columns: 88px 1fr;
       }
 
       .side-timeline-line {
-        left: 50px;
+        left: 60px;
       }
 
       .side-timeline-node {
-        left: 50px;
         width: 34px;
         height: 34px;
       }
 
       .side-timeline-marker {
-        width: 54px;
+        width: 60px;
         gap: 6px;
       }
 
@@ -1312,12 +1310,25 @@
       const usableHeight = Math.max(420, (rows.length - 1) * 56);
       const totalHeight = usableHeight + 90;
 
+      const proximity = usableHeight < 520 ? 30 : 36;
+      const laneOffsets = [0, -18, 18, -34, 34, -50, 50];
+      const placed = [];
+
       const nodes = rows.map(row => {
         const pct = rows.length === 1 ? 0 : ((row.sec - minSec) / range) * 100;
+        const top = 54 + (pct / 100) * usableHeight;
+
+        let lane = 0;
+        while (placed.some(p => Math.abs(p.top - top) < proximity && p.lane === lane)) {
+          lane++;
+        }
+
+        placed.push({ top, lane });
+
         return {
           row,
-          pct,
-          top: 54 + (pct / 100) * usableHeight
+          top,
+          left: 76 + (laneOffsets[lane] ?? ((lane % 2 === 0 ? 1 : -1) * (18 + Math.floor(lane / 2) * 16)))
         };
       });
 
@@ -1346,7 +1357,7 @@
             <div
               class="side-timeline-node ${state.selected && state.selected.dungeon === state.active && state.selected.rowKey === makeRowKey(node.row) ? "active" : ""}"
               data-row-key="${escapeHtml(makeRowKey(node.row))}"
-              style="top:${node.top}px;"
+              style="top:${node.top}px; left:${node.left}px;"
             >
               <img src="${escapeHtml(node.row.iconFile)}" alt="${escapeHtml(node.row.char)}" onerror="this.parentElement.style.display='none'">
             </div>
