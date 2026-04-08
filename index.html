@@ -210,7 +210,7 @@
     .character-icon,
     .video-card-icon,
     .tier-icon,
-    .timeline-icon {
+    .side-timeline-node img {
       object-fit: cover;
       flex: 0 0 auto;
       border: 1px solid rgba(255,255,255,0.16);
@@ -292,121 +292,76 @@
       display: inline-block;
     }
 
-    .timeline-wrap {
-      padding: 8px 16px 14px;
+    .leaderboard-with-timeline {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 0;
+      align-items: start;
     }
 
-    .timeline-title {
-      font-size: 15px;
-      font-weight: 800;
-      margin: 0 0 10px;
-      color: var(--text);
-      white-space: normal;
-      word-break: break-word;
-    }
-
-    .timeline-shell {
+    .side-timeline {
       position: relative;
-      padding-top: 34px;
-      padding-bottom: 90px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      -webkit-overflow-scrolling: touch;
+      padding: 54px 0 12px;
+      margin-left: 6px;
+      min-height: 520px;
     }
 
-    .timeline-track {
-      position: relative;
-      height: 6px;
+    .side-timeline-line {
+      position: absolute;
+      top: 54px;
+      bottom: 18px;
+      left: 28px;
+      width: 4px;
       border-radius: 999px;
-      background: linear-gradient(90deg, #5ecbff, #19d3ff);
-      min-width: 720px;
+      background: linear-gradient(180deg, #5ecbff, #19d3ff);
     }
 
-    .timeline-endcap {
+    .side-timeline-node {
       position: absolute;
-      top: -4px;
-      width: 2px;
-      height: 14px;
-      background: #9fe8ff;
-      border-radius: 2px;
-    }
-
-    .timeline-endcap.start { left: 0; }
-    .timeline-endcap.end { right: 0; }
-
-    .timeline-tick {
-      position: absolute;
-      top: -18px;
-      transform: translateX(-50%);
-      white-space: nowrap;
-      text-align: center;
-      pointer-events: none;
-    }
-
-    .timeline-tick-line {
-      width: 2px;
-      height: 10px;
-      background: rgba(255,255,255,.7);
-      margin: 0 auto 4px;
-      border-radius: 2px;
-    }
-
-    .timeline-tick-label {
-      font-size: 12px;
-      color: #d8e6ff;
-      font-weight: 700;
-    }
-
-    .timeline-node {
-      position: absolute;
-      top: 0;
-      transform: translateX(-50%);
+      left: 28px;
+      transform: translate(-50%, -50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      overflow: hidden;
       cursor: pointer;
-      width: 54px;
-      text-align: center;
+      border: 2px solid rgba(255,255,255,.92);
+      background: rgba(255,255,255,.08);
+      transition: transform .15s ease, box-shadow .15s ease;
+      z-index: 2;
     }
 
-    .timeline-node:hover .timeline-icon {
-      transform: scale(1.06);
+    .side-timeline-node:hover {
+      transform: translate(-50%, -50%) scale(1.06);
       box-shadow: 0 0 16px rgba(255,255,255,.18);
     }
 
-    .timeline-node:hover .timeline-name {
-      color: #fff;
-    }
-
-    .timeline-drop {
-      width: 2px;
-      background: rgba(255,255,255,.65);
-      margin: 0 auto;
-      border-radius: 2px;
-    }
-
-    .timeline-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
+    .side-timeline-node img {
+      width: 100%;
+      height: 100%;
       display: block;
-      margin: 8px auto 6px;
-      border: 2px solid rgba(255,255,255,.92);
-      transition: transform .15s ease, box-shadow .15s ease;
     }
 
-    .timeline-name {
+    .side-timeline-node.active {
+      box-shadow: 0 0 0 3px rgba(124,58,237,.35), 0 0 18px rgba(124,58,237,.35);
+    }
+
+    .side-timeline-top-label,
+    .side-timeline-bottom-label {
+      position: absolute;
+      left: 56px;
       font-size: 12px;
-      line-height: 1.15;
       font-weight: 800;
-      color: var(--text);
-      white-space: normal;
-      word-break: break-word;
+      color: #d8e6ff;
+      white-space: nowrap;
     }
 
-    .timeline-time {
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 700;
-      margin-top: 2px;
-      white-space: nowrap;
+    .side-timeline-top-label {
+      top: 34px;
+    }
+
+    .side-timeline-bottom-label {
+      bottom: 0;
     }
 
     .table-wrap {
@@ -925,16 +880,23 @@
         margin-bottom: 2px;
       }
 
-      .timeline-shell {
-        padding-bottom: 110px;
+      .leaderboard-with-timeline {
+        grid-template-columns: 56px 1fr;
       }
 
-      .timeline-node {
-        width: 64px;
+      .side-timeline-line {
+        left: 22px;
       }
 
-      .timeline-name {
-        font-size: 11px;
+      .side-timeline-node {
+        left: 22px;
+        width: 34px;
+        height: 34px;
+      }
+
+      .side-timeline-top-label,
+      .side-timeline-bottom-label {
+        display: none;
       }
     }
 
@@ -957,6 +919,14 @@
 
       .multi-video-block h3 {
         font-size: 16px;
+      }
+
+      .leaderboard-with-timeline {
+        grid-template-columns: 1fr;
+      }
+
+      .side-timeline {
+        display: none;
       }
     }
 
@@ -1032,7 +1002,7 @@
 
     const DUNGEON_RULES = {
       "Tower of Disappearance": [
-        "In ToD, Lisnar Blessing is banned"
+        "Lisnar Blessing is banned if you already have GC or PGC"
       ]
     };
 
@@ -1218,74 +1188,6 @@
       return [...set.values()].sort((a,b) => a.char.localeCompare(b.char));
     }
 
-    function clamp(value, min, max) {
-      return Math.max(min, Math.min(max, value));
-    }
-
-    function buildTimelineNodes(rows) {
-      if (!rows.length) return [];
-
-      const minSec = rows[0].sec;
-      const maxSec = rows[rows.length - 1].sec;
-      const range = Math.max(maxSec - minSec, 1);
-
-      const laneGap = 60;
-      const placed = [];
-
-      return rows.map(row => {
-        const pct = ((row.sec - minSec) / range) * 100;
-        let lane = 0;
-
-        while (true) {
-          const conflict = placed.some(p => p.lane === lane && Math.abs(p.pct - pct) < 3.2);
-          if (!conflict) break;
-          lane++;
-        }
-
-        placed.push({ pct, lane });
-        return { row, pct, lane, y: lane * laneGap };
-      });
-    }
-
-    function renderTimeline(rows) {
-      if (!rows || !rows.length) return "";
-
-      const nodes = buildTimelineNodes(rows);
-      const minSec = rows[0].sec;
-      const maxSec = rows[rows.length - 1].sec;
-
-      return `
-        <div class="timeline-wrap">
-          <div class="timeline-title">Speedrun Timeline (${escapeHtml(rows[0].Time)} → ${escapeHtml(rows[rows.length - 1].Time)})</div>
-          <div class="timeline-shell">
-            <div class="timeline-track">
-              <div class="timeline-endcap start"></div>
-              <div class="timeline-endcap end"></div>
-
-              ${rows.map(r => {
-                const pct = rows.length === 1 ? 0 : ((r.sec - minSec) / Math.max(maxSec - minSec, 1)) * 100;
-                return `
-                  <div class="timeline-tick" style="left:${pct}%;">
-                    <div class="timeline-tick-label">${escapeHtml(r.Time)}</div>
-                    <div class="timeline-tick-line"></div>
-                  </div>
-                `;
-              }).join("")}
-
-              ${nodes.map(node => `
-                <div class="timeline-node" data-row-key="${escapeHtml(makeRowKey(node.row))}" style="left:${clamp(node.pct, 0, 100)}%; top:0;">
-                  <div class="timeline-drop" style="height:${26 + node.y}px;"></div>
-                  <img class="timeline-icon" src="${escapeHtml(node.row.iconFile)}" alt="${escapeHtml(node.row.char)}" onerror="this.style.display='none'">
-                  <div class="timeline-name">${escapeHtml(node.row.char)}</div>
-                  <div class="timeline-time">${escapeHtml(node.row.Time)}</div>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
     function renderViewTabs() {
       viewLeaderboardEl.className = "view-tab" + (state.view === "leaderboard" ? " active" : "");
       viewTierEl.className = "view-tab" + (state.view === "tier" ? " active" : "");
@@ -1380,6 +1282,37 @@
       });
     }
 
+    function renderSideTimeline(rows) {
+      if (!rows || !rows.length) return "";
+
+      const minSec = rows[0].sec;
+      const maxSec = rows[rows.length - 1].sec;
+      const range = Math.max(maxSec - minSec, 1);
+
+      const nodes = rows.map(row => {
+        const pct = rows.length === 1 ? 0 : ((row.sec - minSec) / range) * 100;
+        return { row, pct };
+      });
+
+      return `
+        <div class="side-timeline">
+          <div class="side-timeline-line"></div>
+          <div class="side-timeline-top-label">${escapeHtml(rows[0].Time)}</div>
+          <div class="side-timeline-bottom-label">${escapeHtml(rows[rows.length - 1].Time)}</div>
+
+          ${nodes.map(node => `
+            <div
+              class="side-timeline-node ${state.selected && state.selected.dungeon === state.active && state.selected.rowKey === makeRowKey(node.row) ? "active" : ""}"
+              data-row-key="${escapeHtml(makeRowKey(node.row))}"
+              style="top:${54 + (node.pct * 420 / 100)}px;"
+            >
+              <img src="${escapeHtml(node.row.iconFile)}" alt="${escapeHtml(node.row.char)}" onerror="this.parentElement.style.display='none'">
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
     function renderLeaderboardView() {
       const rows = state.data[state.active] || [];
       titleEl.textContent = state.active;
@@ -1416,45 +1349,47 @@
       contentAreaEl.innerHTML = `
         ${renderTopThree(rows)}
         ${renderDungeonTabs()}
-        ${renderTimeline(rows)}
-        <div class="table-wrap">
-          <table>
-            <colgroup>
-              <col class="col-pos"><col class="col-character"><col class="col-player"><col class="col-time"><col class="col-date"><col class="col-gap">
-            </colgroup>
-            <thead>
-              <tr><th>Pos</th><th>Character</th><th>Player</th><th>Time</th><th>Date</th><th>Gap</th></tr>
-            </thead>
-            <tbody>
-              ${rows.map(r => {
-                const activeClass = state.selected && state.selected.dungeon === state.active && state.selected.rowKey === makeRowKey(r) ? "active-row" : "";
-                const rankClass = r.Position === "1" ? "rank rank-1" : r.Position === "2" ? "rank rank-2" : r.Position === "3" ? "rank rank-3" : "rank";
-                const diff = r.sec - firstSec;
-                return `
-                  <tr class="${activeClass}" data-row-key="${escapeHtml(makeRowKey(r))}">
-                    <td class="${rankClass}">${escapeHtml(r.Position)}</td>
-                    <td>
-                      <div class="character-cell">
-                        <img class="character-icon" src="${escapeHtml(r.iconFile)}" alt="${escapeHtml(r.char)}" onerror="this.style.display='none'">
-                        <span class="character-name">${escapeHtml(r.char)}</span>
-                      </div>
-                    </td>
-                    <td><span class="player-name">${escapeHtml(r.Player)}</span></td>
-                    <td>${escapeHtml(r.Time)}</td>
-                    <td>${escapeHtml(r["Post date (dd/mm/yyyy)"] || "")}</td>
-                    <td class="${diff === 0 ? "delta neutral" : "delta good"}">${diff === 0 ? "—" : `+${diff.toFixed(2)}s`}</td>
-                  </tr>
-                `;
-              }).join("")}
-            </tbody>
-          </table>
+        <div class="leaderboard-with-timeline">
+          ${renderSideTimeline(rows)}
+          <div class="table-wrap">
+            <table>
+              <colgroup>
+                <col class="col-pos"><col class="col-character"><col class="col-player"><col class="col-time"><col class="col-date"><col class="col-gap">
+              </colgroup>
+              <thead>
+                <tr><th>Pos</th><th>Character</th><th>Player</th><th>Time</th><th>Date</th><th>Gap</th></tr>
+              </thead>
+              <tbody>
+                ${rows.map(r => {
+                  const activeClass = state.selected && state.selected.dungeon === state.active && state.selected.rowKey === makeRowKey(r) ? "active-row" : "";
+                  const rankClass = r.Position === "1" ? "rank rank-1" : r.Position === "2" ? "rank rank-2" : r.Position === "3" ? "rank rank-3" : "rank";
+                  const diff = r.sec - firstSec;
+                  return `
+                    <tr class="${activeClass}" data-row-key="${escapeHtml(makeRowKey(r))}">
+                      <td class="${rankClass}">${escapeHtml(r.Position)}</td>
+                      <td>
+                        <div class="character-cell">
+                          <img class="character-icon" src="${escapeHtml(r.iconFile)}" alt="${escapeHtml(r.char)}" onerror="this.style.display='none'">
+                          <span class="character-name">${escapeHtml(r.char)}</span>
+                        </div>
+                      </td>
+                      <td><span class="player-name">${escapeHtml(r.Player)}</span></td>
+                      <td>${escapeHtml(r.Time)}</td>
+                      <td>${escapeHtml(r["Post date (dd/mm/yyyy)"] || "")}</td>
+                      <td class="${diff === 0 ? "delta neutral" : "delta good"}">${diff === 0 ? "—" : `+${diff.toFixed(2)}s`}</td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
         </div>
       `;
 
       bindDungeonTabs();
       bindTopThree(rows);
 
-      contentAreaEl.querySelectorAll(".timeline-node").forEach(el => {
+      contentAreaEl.querySelectorAll(".side-timeline-node").forEach(el => {
         el.addEventListener("click", () => {
           const key = el.getAttribute("data-row-key");
           const row = rows.find(r => makeRowKey(r) === key);
