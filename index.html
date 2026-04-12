@@ -1244,13 +1244,25 @@
     }
 
     function tierFromScore(s) {
-      if (s >= 0.96) return "SS";
-      if (s >= 0.91) return "S";
-      if (s >= 0.84) return "A";
-      if (s >= 0.77) return "B";
-      if (s >= 0.70) return "C";
-      if (s >= 0.63) return "D";
+      const pct = s * 100;
+      if (pct >= 95) return "SS";
+      if (pct >= 90) return "S";
+      if (pct >= 85) return "A";
+      if (pct >= 75) return "B";
+      if (pct >= 70) return "C";
+      if (pct >= 60) return "D";
       return "F";
+    }
+
+    function getTierThresholdLabel(tier) {
+      if (tier === "SS") return "95-100";
+      if (tier === "S") return "90-95";
+      if (tier === "A") return "85-90";
+      if (tier === "B") return "75-85";
+      if (tier === "C") return "70-75";
+      if (tier === "D") return "60-70";
+      if (tier === "F") return "<60";
+      return "N/A";
     }
 
     function shortDungeonName(d) {
@@ -1576,7 +1588,7 @@
         const score = scoreFloor50(rawScore);
         const tier = tierFromScore(score);
 
-        groups[tier].push({ ...row, score, dungeon });
+        groups[tier].push({ ...row, score, tier, dungeon });
       });
 
       return groups;
@@ -1667,7 +1679,8 @@
 
         groups[tier].push({
           ...item,
-          score: finalScore
+          score: finalScore,
+          tier
         });
       });
 
@@ -1750,10 +1763,10 @@
                         ${enabledOverallDungeons.map(d => `<span>${shortDungeonName(d)} (${item.dungeonRanks[d] ? "#" + item.dungeonRanks[d] : "-"})</span>`).join("")}
                       </div>
                     `;
-                    scoreText = `Score ${(item.score * 100).toFixed(1)}`;
+                    scoreText = `Score ${(item.score * 100).toFixed(1)} • Rank ${item.tier} (${getTierThresholdLabel(item.tier)})`;
                   } else {
                     sub = item.Time || "";
-                    scoreText = `Score ${(item.score * 100).toFixed(1)}`;
+                    scoreText = `Score ${(item.score * 100).toFixed(1)} • Rank ${item.tier} (${getTierThresholdLabel(item.tier)})`;
                   }
 
                   return `
