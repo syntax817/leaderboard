@@ -1098,6 +1098,12 @@
     const TIER_ORDER = ["SS","S","A","B","C","D","F","N/A"];
     const dungeonOrder = Object.keys(DUNGEONS);
 
+    // Dungeons ranked by highest score instead of lowest time
+    const SCORE_BASED_DUNGEONS = new Set(["LoJ Unlimited"]);
+    function isScoreBased(dungeon) {
+      return SCORE_BASED_DUNGEONS.has(dungeon);
+    }
+
     let state = {
       active: "Void Invasion",
       view: "leaderboard",
@@ -1195,6 +1201,21 @@
       return `${mm}:${ss}`;
     }
 
+    function formatScore(n) {
+      return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    function displayValue(row, dungeon) {
+      if (isScoreBased(dungeon)) {
+        return formatScore(row.scoreVal);
+      }
+      return row.Time;
+    }
+
+    function formatNode(sec, dungeon) {
+      return isScoreBased(dungeon) ? formatScore(-sec) : formatSec(sec);
+    }
+
     function normalizeCharacterName(raw) {
       return String(raw || "").replace(/^\d+\)\s*/, "").trim();
     }
@@ -1207,20 +1228,29 @@
         .replace(/[^a-z0-9-]/g, "") + ".jpg";
     }
 
-    function enrichRows(rows) {
+    function enrichRows(rows, dungeon) {
+      const scoreBased = isScoreBased(dungeon);
+      const videoKey = scoreBased ? "Scorerun video:" : "Speedrun video:";
       return rows
-        .filter(r => r.Player && r.Time && r.Character && r.Position && r["Speedrun video:"])
+        .filter(r => r.Player && r.Character && r.Position && r[videoKey] && (scoreBased ? r.Score : r.Time))
         .map(r => ({
           ...r,
           char: normalizeCharacterName(r.Character),
           iconFile: iconFileFromCharacter(r.Character),
-          sec: toSec(r.Time)
+          "Speedrun video:": r[videoKey],
+          sec: scoreBased ? -parseScore(r.Score) : toSec(r.Time),
+          scoreVal: scoreBased ? parseScore(r.Score) : null
         }))
         .sort((a, b) =>
           a.sec - b.sec ||
           parseInt(a.Position, 10) - parseInt(b.Position, 10) ||
           a.char.localeCompare(b.char)
         );
+    }
+
+    function parseScore(s) {
+      // Scores use "." as a thousands separator, e.g. "7.079.165"
+      return parseFloat(String(s || "").replace(/\./g, "").replace(/,/g, "."));
     }
 
     function yt(url) {
@@ -1238,7 +1268,7 @@
     }
 
     function makeRowKey(row) {
-      return [row.Position, row.char, row.Player, row.Time, row["Post date (dd/mm/yyyy)"] || ""].join("|");
+      return [row.Position, row.char, row.Player, row.Time || row.Score || "", row["Post date (dd/mm/yyyy)"] || ""].join("|");
     }
 
     function selectRow(row, dungeon = state.active) {
@@ -1376,7 +1406,7 @@
                   <div class="top-player">${escapeHtml(r.Player)}</div>
                 </div>
               </div>
-              <div class="top-time">${escapeHtml(r.Time)}</div>
+              <div class="top-time">${escapeHtml(displayValue(r, state.active))}</div>
             </div>
           `).join("")}
         </div>
@@ -1430,7 +1460,7 @@
         const pct = markerCount === 1 ? 0 : i / (markerCount - 1);
         const sec = minSec + (range * pct);
         return {
-          label: formatSec(sec),
+          label: formatNode(sec, state.active),
           top: 54 + pct * usableHeight
         };
       });
@@ -1504,7 +1534,7 @@
                 <col class="col-pos"><col class="col-character"><col class="col-player"><col class="col-time"><col class="col-date"><col class="col-gap">
               </colgroup>
               <thead>
-                <tr><th>Pos</th><th>Character</th><th>Player</th><th>Time</th><th>Date</th><th>Gap</th></tr>
+                <tr><th>Pos</th><th>Character</th><th>Player</th><th>${isScoreBased(state.active) ? "Score" : "Time"}</th><th>Date</th><th>Gap</th></tr>
               </thead>
               <tbody>
                 ${rows.map(r => {
@@ -1521,9 +1551,9 @@
                         </div>
                       </td>
                       <td><span class="player-name">${escapeHtml(r.Player)}</span></td>
-                      <td>${escapeHtml(r.Time)}</td>
+                      <td>${escapeHtml(displayValue(r, state.active))}</td>
                       <td>${escapeHtml(r["Post date (dd/mm/yyyy)"] || "")}</td>
-                      <td class="${diff === 0 ? "delta neutral" : "delta good"}">${diff === 0 ? "—" : `+${diff.toFixed(2)}s`}</td>
+                      <td class="${diff === 0 ? "delta neutral" : "delta good"}">${diff === 0 ? "—" : (isScoreBased(state.active) ? `-${formatScore(-diff)}` : `+${diff.toFixed(2)}s`)}</td>
                     </tr>
                   `;
                 }).join("")}
@@ -1548,7 +1578,7 @@
             <img src="${row.iconFile}" alt="${escapeHtml(row.char)}" onerror="this.parentElement.style.display='none'">
             <div class="timeline-preview-meta">
               <div class="timeline-preview-name">${escapeHtml(row.char)}</div>
-              <div class="timeline-preview-time">${escapeHtml(row.Time)}</div>
+              <div class="timeline-preview-time">${escapeHtml(displayValue(row, state.active))}</div>
             </div>
           `;
           preview.classList.add("show");
@@ -1882,7 +1912,7 @@
           <div class="multi-video-block">
             <h3>${escapeHtml(dungeon)}</h3>
             <div class="multi-video-meta">
-              ${escapeHtml(row.char)} • ${escapeHtml(row.Player)} • ${escapeHtml(row.Time)} • #${escapeHtml(row.Position)}
+              ${escapeHtml(row.char)} • ${escapeHtml(row.Player)} • ${escapeHtml(displayValue(row, dungeon))} • #${escapeHtml(row.Position)}
             </div>
             ${
               embed
@@ -1936,7 +1966,7 @@
       const embed = yt(row["Speedrun video:"]);
 
       videoTitleEl.textContent = `${row.Player} • ${row.char}`;
-      videoSubtitleEl.textContent = `${state.selected.dungeon} • ${row.Time} • ${row["Post date (dd/mm/yyyy)"] || ""}`;
+      videoSubtitleEl.textContent = `${state.selected.dungeon} • ${displayValue(row, state.selected.dungeon)} • ${row["Post date (dd/mm/yyyy)"] || ""}`;
 
       videoCardEl.innerHTML = `
         <div class="video-card">
@@ -1947,7 +1977,7 @@
               <div class="video-card-player">${escapeHtml(row.Player)}</div>
             </div>
           </div>
-          <div class="video-card-sub">Position ${escapeHtml(row.Position)} • ${escapeHtml(row.Time)}</div>
+          <div class="video-card-sub">Position ${escapeHtml(row.Position)} • ${escapeHtml(displayValue(row, state.selected.dungeon))}</div>
         </div>
       `;
 
@@ -1974,7 +2004,7 @@
           return;
         }
         const text = await response.text();
-        state.data[dungeon] = enrichRows(parseCSV(text));
+        state.data[dungeon] = enrichRows(parseCSV(text), dungeon);
       } catch (e) {
         state.data[dungeon] = [];
       }
