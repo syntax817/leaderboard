@@ -1068,13 +1068,16 @@
       "Void Taint": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=1202569298&single=true&output=csv",
       "Void Nightmare": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=288867483&single=true&output=csv",
       "Tower of Disappearance": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=1230006600&single=true&output=csv",
-      "Duel 4": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=1725380348&single=true&output=csv"
+      "Duel 4": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=1725380348&single=true&output=csv",
+      "LoJ 500k": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=657484618&single=true&output=csv",
+      "LoJ ∞": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSg2rhuWbyxU6gWk79L54s3CoBLWuDUgrhxkaBZ2fnzOzdMEE48iuHff3O9z1NZBOiYR8f8dkMHHdnd/pub?gid=1478193332&single=true&output=csv"
     };
 
     const GENERAL_RULES = [
       "No pot, no quote runs",
       "Glitches like bubble skip in V1 are valid until KOG fixes them, as they're only tournament banned",
       "Please show all the stats displayed in the scoreboard or type them in the video description so I can analyze the data",
+      "Runs that doesn't use event temporary equipment & coordi, and neither surpass 20% buff cap from GC clubs, Lisnar Blessing and Guild Attack Pot are automatically valid. In other words, the stats are uncapped with permanent items while having 20% buff or below."
       "In case you don't have any GC clubs, guild attack pot is allowed. If you use guild pot while having single GC club, use 5% = 27% cdmg and check in the cap below if your run is valid.",
       "For stick coordi, turtle shell, and other temporary items' extra stats compared to perma BIS, use 555atk = 6,37%MPr conversion rate and add the resulting attack in your atk+spa. If it surpasses 8.2, the run is invalid.",
       "Cdmg caps: 1090% for crit chance build, 1105% for cdmg build. Veigas can keep his +30% cdmg passive without any issues (add +30% cdmg to the cap). Unless proven you can get higher cdmg naturally, surpassing these gaps makes your run invalid."
@@ -1083,6 +1086,12 @@
     const DUNGEON_RULES = {
       "Tower of Disappearance": [
         "In ToD, Lisnar Blessing is banned if you already have GC Club or PGC (20% buff cap)"
+      ],
+      "LoJ 500k": [
+        "In LoJ, Lisnar Blessing is banned if you already have GC Club or PGC (20% buff cap)"
+      ],
+      "LoJ ∞": [
+        "In LoJ, Lisnar Blessing is banned if you already have GC Club or PGC (20% buff cap)"
       ]
     };
 
@@ -1271,6 +1280,8 @@
       if (d === "Void Nightmare") return "V3";
       if (d === "Tower of Disappearance") return "ToD";
       if (d === "Duel 4") return "D4";
+      if (d === "LoJ 500k") return "LoJ";
+      if (d === "LoJ ∞") return "LoJ∞";
       return d;
     }
 
