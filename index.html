@@ -1212,8 +1212,12 @@
       return row.Time;
     }
 
+    function formatScoreMillions(n) {
+      return (n / 1000000).toFixed(3) + "m";
+    }
+
     function formatNode(sec, dungeon) {
-      return isScoreBased(dungeon) ? formatScore(-sec) : formatSec(sec);
+      return isScoreBased(dungeon) ? formatScoreMillions(-sec) : formatSec(sec);
     }
 
     function normalizeCharacterName(raw) {
