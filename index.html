@@ -1201,19 +1201,15 @@
       return `${mm}:${ss}`;
     }
 
-    function formatScore(n) {
-      return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    }
-
     function displayValue(row, dungeon) {
       if (isScoreBased(dungeon)) {
-        return formatScore(row.scoreVal);
+        return (row.scoreVal / 1000000).toFixed(2) + "m";
       }
       return row.Time;
     }
 
     function formatScoreMillions(n) {
-      return (n / 1000000).toFixed(3) + "m";
+      return (n / 1000000).toFixed(2) + "m";
     }
 
     function formatNode(sec, dungeon) {
@@ -1535,7 +1531,7 @@
           <div class="table-wrap">
             <table>
               <colgroup>
-                <col class="col-pos"><col class="col-character"><col class="col-player"><col class="col-time"><col class="col-date"><col class="col-gap">
+                <col class="col-pos"><col class="col-character" style="${isScoreBased(state.active) ? "width:22%" : ""}"><col class="col-player"><col class="col-time" style="${isScoreBased(state.active) ? "width:18%" : ""}"><col class="col-date"><col class="col-gap">
               </colgroup>
               <thead>
                 <tr><th>Pos</th><th>Character</th><th>Player</th><th>${isScoreBased(state.active) ? "Score" : "Time"}</th><th>Date</th><th>Gap</th></tr>
@@ -1557,7 +1553,7 @@
                       <td><span class="player-name">${escapeHtml(r.Player)}</span></td>
                       <td>${escapeHtml(displayValue(r, state.active))}</td>
                       <td>${escapeHtml(r["Post date (dd/mm/yyyy)"] || "")}</td>
-                      <td class="${diff === 0 ? "delta neutral" : "delta good"}">${diff === 0 ? "—" : (isScoreBased(state.active) ? `-${formatScore(-diff)}` : `+${diff.toFixed(2)}s`)}</td>
+                      <td class="${diff === 0 ? "delta neutral" : "delta good"}">${diff === 0 ? "—" : (isScoreBased(state.active) ? `-${formatScoreMillions(-diff)}` : `+${diff.toFixed(2)}s`)}</td>
                     </tr>
                   `;
                 }).join("")}
